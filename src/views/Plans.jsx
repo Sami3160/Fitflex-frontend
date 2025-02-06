@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import PlansCard from "../components/PlansCard";
 import plansObject from "../data/plans.json";
 import axios from 'axios'
+import PlansCardV2 from "../components/PlanCardsV2";
 const URL = import.meta.env.VITE_API_URL;
 
 function Plans({ mode, textcolor }) {
@@ -130,7 +131,7 @@ function Plans({ mode, textcolor }) {
             >
               {plans.map((obj, index) => {
                 // console.log(obj)
-                return <PlansCard key={index} info={obj} />;
+                return <PlansCardV2 key={index} info={obj} />;
               })}
             </div>
             {/* <p style={{textWrap:'nowrap'}}>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Maiores sequi adipisci aliquam obcaecati deleniti ipsam, modi iusto necessitatibus tempora rerum optio, blanditiis ducimus. Necessitatibus aliquam quasi sint, sequi vero voluptatum.</p> */}
@@ -160,6 +161,7 @@ function Plans({ mode, textcolor }) {
                 justifyContent: "start",
                 width: { sm: "90vw", md: "70vw" },
                 overflowX: "scroll",
+                padding:"10px",
                 gap: 4,
               }}
             >
@@ -167,13 +169,14 @@ function Plans({ mode, textcolor }) {
                 style={{
                   display: "flex",
                   cursor: "",
+                  gap:"10px",
                   paddingY: "10px",
                   margin: "8px 0px 8px 0px",
                 }}
               >
                 {console.log(workoutArray)}
                 {workoutArray.map((obj, index) => {
-                  return <PlansCard key={index} info={obj} />;
+                  return <PlansCardV2 key={index} info={obj} />;
                 })}
               </div>
             </Box>
