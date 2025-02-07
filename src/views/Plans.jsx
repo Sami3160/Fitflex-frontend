@@ -174,7 +174,6 @@ function Plans({ mode, textcolor }) {
                   margin: "8px 0px 8px 0px",
                 }}
               >
-                {console.log(workoutArray)}
                 {workoutArray.map((obj, index) => {
                   return <PlansCardV2 key={index} info={obj} />;
                 })}

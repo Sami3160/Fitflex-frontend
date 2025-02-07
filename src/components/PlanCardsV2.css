@@ -1,8 +1,11 @@
 /* From Uiverse.io by Smit-Prajapati */
 .card {
-    width: 230px;
+    position: relative;
+    width: 270px;
+
     border-radius: 20px;
-    background: #1b233d;
+    background: linear-gradient(45deg, #35363C 0%, #222228 100%);
+    /* background: #FFA500; */
     padding: 5px;
     overflow: hidden;
     box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 20px 0px;
@@ -14,15 +17,24 @@
 }
 
 .card .top-section {
-    height: 150px;
+    height: 180px;
     border-radius: 15px;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(45deg, rgb(4, 159, 187) 0%, rgb(80, 246, 255) 100%);
+    background: linear-gradient(45deg, #FFA500 0%, #FFD145 100%);
+    /* background: #FFA500; */
+
     position: relative;
 }
-
-.card .top-section .border {
+.banner{
+    /* overflow: none; */
+    object-fit: cover;
+    height: 80%;
+    width:  98%;
+    margin: 3px;
+    border-radius: 15px;
+}
+.card .top-section .border2 {
     border-bottom-right-radius: 10px;
     height: 30px;
     width: 130px;
@@ -33,7 +45,7 @@
     box-shadow: -10px -10px 0 0 #1b233d;
 }
 
-.card .top-section .border::before {
+.card .top-section .border2::before {
     content: "";
     position: absolute;
     width: 15px;
@@ -78,7 +90,7 @@
 
 .card .top-section .icons .social-media {
     height: 100%;
-    padding: 8px 15px;
+    padding: 5px 10px;
     display: flex;
     gap: 7px;
 }
