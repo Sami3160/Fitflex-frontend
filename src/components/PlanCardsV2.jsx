@@ -14,7 +14,7 @@ const PlansCardV2 = ({ info }) => {
     "Intermidiate": (<img width="24" height="20" src={yellow} alt="external-Bicep-health-care-and-medical-vectorslab-glyph-vectorslab" />),
     "Advanced": (<img width="24" height="20" src={red} alt="external-Bicep-health-care-and-medical-vectorslab-glyph-vectorslab" />)
   }
-  console.log(info)
+  // console.log(info)
   return (
     <div className="card">
       <div className="top-section">
@@ -35,7 +35,7 @@ const PlansCardV2 = ({ info }) => {
         <span className="title">{info?.name}</span>
         <center>
 
-        <Button message={"Start"} url={`plans/workouts/${info?._id}/overview`}/>
+        <Button message={"Start"} url={`plans/workouts/${info?._id}/overview`} data={info}/>
         </center>
         <div className="row row1">
           <div className="item">

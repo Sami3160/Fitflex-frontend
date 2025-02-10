@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useContext } from "react";
-import { AuthContext , AuthProvider} from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   TextField,

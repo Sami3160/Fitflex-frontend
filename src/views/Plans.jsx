@@ -6,10 +6,13 @@ import PlansCard from "../components/PlansCard";
 import plansObject from "../data/plans.json";
 import axios from 'axios'
 import PlansCardV2 from "../components/PlanCardsV2";
+import { useWorkout } from "../context/WorkoutContext";
 const URL = import.meta.env.VITE_API_URL;
 
 function Plans({ mode, textcolor }) {
+  // const workouts=useWorkout()
   const [workouts, setWorkouts] = useState({});
+
   useEffect(() => {
     document.title = "FitFlex-Know Your Plans";
     const fetchWorkouts=async()=>{
@@ -27,50 +30,7 @@ function Plans({ mode, textcolor }) {
   }, []);
   
   const [isLogged, setLogged] = useState(false);
-  const plans = [
-    {
-      id: 1,
-      name: "Basic Plan",
-      price: "Rs 9.99",
-      image: "triceps",
-      features: ["Access to basic workouts", "Limited support"],
-    },
-    {
-      id: 2,
-      name: "Premium Plan",
-      price: "Rs 19.99",
-      image: "triceps",
-      features: ["Access to premium workouts", "24/7 support"],
-    },
-    {
-      id: 3,
-      name: "Pro Plan",
-      price: "Rs 29.99",
-      image: "triceps",
-      features: ["Access to all workouts", "Personal trainer support"],
-    },
-    {
-      id: 3,
-      name: "Pro Plan",
-      price: "Rs 29.99",
-      image: "triceps",
-      features: ["Access to all workouts", "Personal trainer support"],
-    },
-    {
-      id: 4,
-      name: "Pro Plan",
-      price: "Rs 29.99",
-      image: "triceps",
-      features: ["Access to all workouts", "Personal trainer support"],
-    },
-    {
-      id: 5,
-      name: "Pro Plan",
-      price: "Rs 29.99",
-      image: "triceps",
-      features: ["Access to all workouts", "Personal trainer support"],
-    },
-  ];
+
 
   return (
     <Box
@@ -174,7 +134,7 @@ function Plans({ mode, textcolor }) {
                   margin: "8px 0px 8px 0px",
                 }}
               >
-                {workoutArray.map((obj, index) => {
+                {workoutArray?.map((obj, index) => {
                   return <PlansCardV2 key={index} info={obj} />;
                 })}
               </div>
@@ -182,46 +142,7 @@ function Plans({ mode, textcolor }) {
           </div>
         ))
       }
-      {/* {plansObject.list.map((planObj, index) => {
-        return (
-          <div key={index}>
-            <Typography
-              variant="h3"
-              gutterBottom
-              sx={{
-                marginTop: "2%",
-                color: textcolor,
-                fontWeight: "bold",
-              }}
-            >
-              {planObj.name}
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "start",
-                width: { sm: "90vw", md: "70vw" },
-                overflowX: "scroll",
-                gap: 4,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  cursor: "",
-                  paddingY: "10px",
-                  margin: "8px 0px 8px 0px",
-                }}
-              >
-                {planObj.plans.map((obj, index) => {
-                  return <PlansCard key={index} info={obj} />;
-                })}
-              </div>
-            </Box>
-          </div>
-        );
-      })} */}
+      
 
      
     </Box>
