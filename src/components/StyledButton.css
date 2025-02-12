@@ -1,4 +1,4 @@
-.button-with-icon {
+.button-with-icon1 {
     overflow: hidden;
     display: inline-flex;
     align-items: center;
@@ -33,15 +33,15 @@
     transition: 150ms all ease-in-out;
   }
   
-  .button-with-icon .icon1 {
-    margin-right: 8px;
+  .button-with-icon1 .icon1 {
+    /* margin-right: 8px; */
     /* margin-top: 10px; */
     width: 24px;
     height: 24px;
     transition: all 0.5s ease-in-out;
   }
   
-  .button-with-icon:active {
+  .button-with-icon1:active {
     transform: translateY(3px);
     box-shadow:
       inset 0 16px 2px -15px rgba(0, 0, 0, 0),
@@ -53,10 +53,10 @@
       0 0 0 rgba(0, 0, 0, 0);
   }
   
-  .button-with-icon:hover .text {
+  .button-with-icon1:hover .text {
     transform: translateX(80px);
   }
-  .button-with-icon:hover .icon1 {
+  .button-with-icon1:hover .icon1 {
     transform: translate(23px);
   }
   

@@ -38,15 +38,15 @@ const PlansCardV2 = ({ info }) => {
         <Button message={"Start"} url={`plans/workouts/${info?._id}/overview`} data={info}/>
         </center>
         <div className="row row1">
-          <div className="item">
+          <div className="item1">
             <span className="big-text">{info?.level}</span>
             <span className="regular-text">Difficulty</span>
           </div>
-          <div className="item">
+          <div className="item1">
             <span className="big-text">0%</span>
             <span className="regular-text">Completed</span>
           </div>
-          <div className="item">
+          <div className="item1">
             <span className="big-text">0</span>
             <span className="regular-text">Followers</span>
           </div>

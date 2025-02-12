@@ -124,23 +124,23 @@
     margin-top: 20px;
 }
 
-.card .bottom-section .row .item {
+.card .bottom-section .row .item1 {
     flex: 30%;
     text-align: center;
     padding: 5px;
     color: rgba(170, 222, 243, 0.721);
 }
 
-.card .bottom-section .row .item .big-text {
+.card .bottom-section .row .item1 .big-text {
     font-size: 12px;
     display: block;
 }
 
-.card .bottom-section .row .item .regular-text {
+.card .bottom-section .row .item1 .regular-text {
     font-size: 9px;
 }
 
-.card .bottom-section .row .item:nth-child(2) {
+.card .bottom-section .row .item1:nth-child(2) {
     border-left: 1px solid rgba(255, 255, 255, 0.126);
     border-right: 1px solid rgba(255, 255, 255, 0.126);
 }
