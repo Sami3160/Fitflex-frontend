@@ -8,13 +8,18 @@ import Button from './StyledButton'
 import like from '../assets/like.png'
 
 import liked from '../assets/liked.png'
-const PlansCardV2 = ({ info }) => {
+const PlansCardV2 = ({ info , progressData}) => {
   const difficultyMap = {
     "Beginner": (<img width="24" height="20" src={green} alt="external-Bicep-health-care-and-medical-vectorslab-glyph-vectorslab" />),
     "Intermidiate": (<img width="24" height="20" src={yellow} alt="external-Bicep-health-care-and-medical-vectorslab-glyph-vectorslab" />),
     "Advanced": (<img width="24" height="20" src={red} alt="external-Bicep-health-care-and-medical-vectorslab-glyph-vectorslab" />)
   }
   // console.log(info)
+  let progress =0
+  if(Object.keys(progressData).length>0){
+    // console.log(progressData)
+    progress=(progressData?.daysCompleted)/info?.roadMap?.length
+  }
   return (
     <div className="card">
       <div className="top-section">
@@ -43,7 +48,7 @@ const PlansCardV2 = ({ info }) => {
             <span className="regular-text">Difficulty</span>
           </div>
           <div className="item1">
-            <span className="big-text">0%</span>
+            <span className="big-text">{(progress)+"%"}</span>
             <span className="regular-text">Completed</span>
           </div>
           <div className="item1">

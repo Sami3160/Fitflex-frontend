@@ -7,28 +7,31 @@ import plansObject from "../data/plans.json";
 import axios from 'axios'
 import PlansCardV2 from "../components/PlanCardsV2";
 import { useWorkout } from "../context/WorkoutContext";
+import { useAuth } from "../context/AuthContext";
 const URL = import.meta.env.VITE_API_URL;
 
 function Plans({ mode, textcolor }) {
+
   // const workouts=useWorkout()
   const [workouts, setWorkouts] = useState({});
-
+  const [workoutsInProgress, setWorkoutsInProgress] = useState([]);
+  const { user } = useAuth()
   useEffect(() => {
     document.title = "FitFlex-Know Your Plans";
-    const fetchWorkouts=async()=>{
+    const fetchWorkouts = async () => {
       try {
-        const response=await axios.get(`${URL}/api/workouts/workouts`)
+        const response = await axios.get(`${URL}/api/workouts/workouts`)
         setWorkouts(response.data.data)
         // console.log(response.data.data)
-        
+
       } catch (error) {
-       console.error(error) 
+        console.error(error)
       }
     }
     fetchWorkouts()
 
   }, []);
-  
+
   const [isLogged, setLogged] = useState(false);
 
 
@@ -64,7 +67,7 @@ function Plans({ mode, textcolor }) {
         </Typography>
       </Box>
 
-      {isLogged && (
+      {user && user?.inprogressWorkouts?.length > 0 && (
         <div>
           <Typography sx={{ marginTop: "2%", color: "#858585" }}>
             Your current plans,
@@ -89,7 +92,7 @@ function Plans({ mode, textcolor }) {
                 margin: "8px 0px 8px 0px",
               }}
             >
-              {plans.map((obj, index) => {
+              {plans?.map((obj, index) => {
                 // console.log(obj)
                 return <PlansCardV2 key={index} info={obj} />;
               })}
@@ -101,7 +104,7 @@ function Plans({ mode, textcolor }) {
 
       {/* ultimate map */}
       {
-        Object.entries(workouts).map(([type, workoutArray], index)=>(
+        Object.entries(workouts).map(([type, workoutArray], index) => (
           <div key={index}>
             <Typography
               variant="h3"
@@ -121,7 +124,7 @@ function Plans({ mode, textcolor }) {
                 justifyContent: "start",
                 width: { sm: "90vw", md: "70vw" },
                 overflowX: "scroll",
-                padding:"10px",
+                padding: "10px",
                 gap: 4,
               }}
             >
@@ -129,22 +132,39 @@ function Plans({ mode, textcolor }) {
                 style={{
                   display: "flex",
                   cursor: "",
-                  gap:"10px",
+                  gap: "10px",
                   paddingY: "10px",
                   margin: "8px 0px 8px 0px",
                 }}
               >
                 {workoutArray?.map((obj, index) => {
-                  return <PlansCardV2 key={index} info={obj} />;
+                  let progressData = {};
+                  if (user?.inprogressWorkouts) {
+                    for (let progressObj of user.inprogressWorkouts) {
+                      if (progressObj.workoutId === obj.workoutId) {
+                        progressData = progressObj;
+                        break;
+                      }
+                    }
+                  }
+                  if (user?.completedWorkouts) {
+                    for (let progressObj of user.completedWorkouts) {
+                      if (progressObj.workoutId === obj.workoutId) {
+                        progressData = progressObj;
+                        break;
+                      }
+                    }
+                  }
+                  return <PlansCardV2 key={index} info={obj} progressData={progressData} />;
                 })}
               </div>
             </Box>
           </div>
         ))
       }
-      
 
-     
+
+
     </Box>
   );
 }

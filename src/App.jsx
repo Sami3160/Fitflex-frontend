@@ -16,12 +16,11 @@ const Contact = lazy(() => import("./views/Contact.jsx"));
 const Register = lazy(() => import("./views/Register.jsx"));
 const Login = lazy(() => import("./views/Login.jsx"));
 const ForgotPassword = lazy(() => import("./views/ForgotPassword.jsx")); { "forgot password location" }
-
+const StartWorkout = lazy(() => import("./views/workouts/StartWorkout.jsx"));
 
 const About = lazy(() => import("./views/About.jsx"));
 const Profile = lazy(() => import("./views/Profile.jsx"));
 const Plans = lazy(() => import("./views/Plans.jsx"));
-const Workout = lazy(() => import("./views/Workout.jsx"));
 const IndividualWorkout = lazy(() => import('./views/workouts/IndividialWorkout.jsx'))
 // const HealthTips = lazy(() => import("./components/Healthtips.jsx"));
 // import HealthTips from './components/HealthTips'; // Make sure this path is correct
@@ -110,6 +109,7 @@ function App() {
 
                 <Route path="/*" element={<NotFound />} />
                 <Route path="/healthtips" element={<HealthTips />} />
+                <Route path="/startWorkout" element={<StartWorkout />} />
                 <Route
                   path="/blog"
                   element={<Blog mode={mode} textcolor={textcolor} />}

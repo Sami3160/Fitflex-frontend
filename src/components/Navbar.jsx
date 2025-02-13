@@ -175,7 +175,8 @@ function Navbar(props) {
     <ThemeProvider theme={navTheme}>
       <AppBar
 
-        position=" fixed top-0 z-50"
+        // position="fixed top-0 z-50"
+        position="fixed"
         className="navGsap"
         sx={{
           background:

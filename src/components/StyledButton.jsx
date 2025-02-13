@@ -1,7 +1,7 @@
 import './StyledButton.css'
 const Button = ({ message, url }) => {
     return (
-        <button className="button-with-icon1" onClick={() => { window.open(url, "_blank") }}>
+        <button className="button-with-icon1" onClick={() => { window.open(url, "_self") }}>
             <svg
                 className="icon1"
                 id="Play"
