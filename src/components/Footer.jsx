@@ -290,7 +290,7 @@ const Footer = () => {
                   <Link
                     key={index}
                     href={item.path} // Update to use item.path
-                    smooth={true}
+                    // smooth
                     color="grey.400"
                     display="block"
                     gutterBottom

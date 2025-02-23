@@ -65,7 +65,7 @@ export default function IndividialWorkout() {
         window.open(`/startWorkout`, "blank")
     }
 
-    console.log(workoutData)
+    // console.log(workoutData)
     return (
         <div>
             <div className="h-24"></div>
@@ -155,7 +155,7 @@ export default function IndividialWorkout() {
                 </div>
 
                 <div className="rightBar">
-                    <RightSideContent info={{ title: workoutData?.name, description: workoutData?.description }} isLogged={(user ? true : false)} status={status} daysCompleted={daysCompleted} />
+                    <RightSideContent info={{ title: workoutData?.name, description: workoutData?.description }} isLogged={(user ? true : false)} status={status} workoutId={workoutData?._id} daysCompleted={daysCompleted} />
                 </div>
             </div>
         </div>

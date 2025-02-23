@@ -29,8 +29,17 @@ export const WorkoutProvider = ({ children }) => {
             }
         }
     }
+    const getExerciseById = async (workoutId) => {
+        try {
+            // console.log(workoutId)
+            const response = await axios.get(`${URL}/api/workouts/exercise/${workoutId}`)
+            return response.data.data
+        } catch (error) {
+            console.error(error)
+        }
+    }
     return (
-        <WorkoutContext.Provider value={{ getWorkoutById, workouts }}>
+        <WorkoutContext.Provider value={{ getWorkoutById, workouts,getExerciseById }}>
             {children}
         </WorkoutContext.Provider>
     )

@@ -12,6 +12,9 @@ body {
   -ms-overflow-style: none;
 } */
 
+.no-scroll {
+  overflow: hidden;
+}
 
 body::-webkit-scrollbar {
   width: 12px;

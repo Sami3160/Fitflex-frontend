@@ -1,10 +1,10 @@
 import React from 'react'
 
-export default function RightSideContent({ info, isLogged, status, daysCompleted }) {
+export default function RightSideContent({ info, isLogged, status, daysCompleted, workoutId }) {
     const sentences = info?.description?.split('.').filter(Boolean);
     const content = [];
     let resumeDay = 0
-    
+
 
 
     for (let i = 0; i < sentences?.length; i += 2) {
@@ -20,45 +20,45 @@ export default function RightSideContent({ info, isLogged, status, daysCompleted
                 })
             }
             <br /><br />
-            <LetsGetStarted isLogged={isLogged} status={status} _if={info._id} />
+            <LetsGetStarted isLogged={isLogged} status={status} _id={workoutId} daysCompleted={daysCompleted} />
         </div>
     )
 }
 
-const LetsGetStarted = ({ isLogged, status,_id, daysCompleted }) => {
+const LetsGetStarted = ({ isLogged, status, _id, daysCompleted }) => {
     return (
         <div className="relative group">
             <button
                 className="relative inline-block p-px font-semibold leading-6 text-white bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95"
                 onClick={() => {
                     if (isLogged) {
-                        if(status === "inprogress") {
-                            const res=confirm("Want to resume the workout or start from the beginning?")
-                            if(res){
-                                const data={
-                                    workoutId:_id,
-                                    daysCompleted:daysCompleted,
-                                    status:"inprogress",
+                        if (status === "inprogress") {
+                            const res = confirm("Want to resume the workout or start from the beginning?")
+                            if (res) {
+                                const data = {
+                                    workoutId: _id,
+                                    daysCompleted: daysCompleted,
+                                    status: "inprogress",
                                 }
-                                localStorage.setItem("exerciseData",JSON.stringify(data))
-                                window.open(`/startWorkout`,"blank")
-                            }else{
-                                const data={
-                                    workoutId:_id,
-                                    daysCompleted:0,
-                                    status:"inprogress",
+                                localStorage.setItem("exerciseData", JSON.stringify(data))
+                                window.open(`/startWorkout`, "blank")
+                            } else {
+                                const data = {
+                                    workoutId: _id,
+                                    daysCompleted: 0,
+                                    status: "inprogress",
                                 }
-                                localStorage.setItem("exerciseData",JSON.stringify(data))
-                                window.open(`/startWorkout`,"blank")
+                                localStorage.setItem("exerciseData", JSON.stringify(data))
+                                window.open(`/startWorkout`, "blank")
                             }
-                        }else{
-                            const data={
-                                workoutId:_id,
-                                daysCompleted:0,
-                                status:"new",
+                        } else {
+                            const data = {
+                                workoutId: _id,
+                                daysCompleted: 0,
+                                status: "new",
                             }
-                            localStorage.setItem("exerciseData",JSON.stringify(data))
-                            window.open(`/startWorkout`,"blank")
+                            localStorage.setItem("exerciseData", JSON.stringify(data))
+                            window.open(`/startWorkout`, "blank")
                         }
                     } else {
                         alert("Please login to continue")
@@ -74,8 +74,8 @@ const LetsGetStarted = ({ isLogged, status,_id, daysCompleted }) => {
                     <div className="relative z-10 flex items-center space-x-2">
                         <span className="transition-all duration-500 group-hover:translate-x-1"
                         >
-                            Let's get started</span
-                        >
+                            Let's get started
+                        </span>
                         <svg
                             className="w-6 h-6 transition-transform duration-500 group-hover:translate-x-1"
                             data-slot="icon"
