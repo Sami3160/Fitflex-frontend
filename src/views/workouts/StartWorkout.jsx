@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAsyncError, useNavigate } from 'react-router-dom';
 import { useWorkout } from '../../context/WorkoutContext';
+const AdvanceTimer=React.lazy(()=>import('../../components/AdvanceTimer'))
 
 export default function StartWorkout() {
   const [workoutMeta, setWorkoutMeta] = useState(JSON.parse(localStorage.getItem('exerciseData')) || {});
@@ -18,6 +19,8 @@ export default function StartWorkout() {
   const [currentExercise, setCurrentExercise] = useState(null);
   const [currentDay, setCurrentDay] = useState(null);
   const [progress, setProrgess] = useState(0)
+  const [advanceTimer, setAdvanceTimer] = useState(false);
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -157,8 +160,11 @@ export default function StartWorkout() {
     if (exerciseIndex == currentDay?.exercise?.length) {
       alert('exercise completed')
     }else{
-      setExerciseIndex((prev) => prev + 1)
-      setProrgess((exerciseIndex+1)/currentDay?.exercises?.length)
+      setExerciseIndex((prev) => prev + 1);
+      setProrgess(((exerciseIndex+1)/currentDay?.exercises?.length)*100);
+      
+      setAdvanceTimer(true);
+      // setTimeout(()=>,30000)
     }
   }
 
@@ -202,6 +208,7 @@ export default function StartWorkout() {
   const changeInstruction = (opr) => {
     if (opr === 'next') {
       setInstructionIndex((prev) => (prev + 1) % instructions.length);
+      
     } else if (opr === 'skip') {
       setInitialInstruction(false);
       setStartCountDown(true);
@@ -232,7 +239,7 @@ export default function StartWorkout() {
               </button>
 
               <div className="progress flex flex-col justify-end p-2">
-                <div className="head">{progress}% | Total{currentDay?.exercises?.length}</div>
+                <div className="head">{progress}% | Total {currentDay?.exercises?.length} exercises.</div>
                 <div className="bar h-3 w-[80vw] relative  shadow-md rounded-lg">
                   <div className="h-full bg-yellow-300 rounded-lg absolute z-10" style={{ width: `${progress}%` }}></div>
                   <div className="h-full w-[100%] bg-gray-300 rounded-lg absolute"></div>
@@ -276,7 +283,7 @@ export default function StartWorkout() {
                   <span className='text-xl font-bold'>{currentDay?.exercises[0].name}, {currentDay?.exercises[0].duration}</span>
                 </div>
               )}
-              {(!startCountDown && !initialInstruction) && (
+              {(!startCountDown && !initialInstruction && !advanceTimer) && (
                 <ExercisePlayer 
                 _id={currentDay?.exercises[0].exerciseData} 
                 progress={((exerciseIndex + 1) / currentDay?.exercise?.length)} 
@@ -287,6 +294,11 @@ export default function StartWorkout() {
                 
                 />
               )}
+              {
+                advanceTimer && (
+                  <AdvanceTimer timeAmount={30} handleClose={()=>setAdvanceTimer(false)} />
+                )
+              }
             </div>
           </div>
         </div>
@@ -316,7 +328,8 @@ export default function StartWorkout() {
   );
 }
 
-function ExercisePlayer({ _id, duration, data, progress }) {
+
+function ExercisePlayer({ _id, duration, data, progress, next,previous }) {
   const [time, setTime] = useState(duration.split('-')[0] === 'time' ? duration.split('-')[1] : -1);
   const [reps, setReps] = useState(duration.split('-')[0] === 'reps' ? duration.split('-')[1] : -1);
   const type = duration.split('-')[0];
@@ -326,12 +339,6 @@ function ExercisePlayer({ _id, duration, data, progress }) {
     next: false,
     previous: false,
   });
-  const next = () => {
-    console.log('next');
-  };
-  const previous = () => {
-    console.log('previous');
-  };
   const pause = () => {
     console.log('pause');
   }
@@ -345,6 +352,7 @@ function ExercisePlayer({ _id, duration, data, progress }) {
       }, 1000);
       return () => clearTimeout(timer);
     } else {
+      setTime(30);
       next();
     }
   }, [time, events])
