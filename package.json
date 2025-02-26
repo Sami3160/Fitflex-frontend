@@ -53,6 +53,7 @@
     "react-router-dom": "^6.24.1",
     "react-simple-chatbot": "^0.5.0",
     "react-slick": "^0.30.2",
+    "react-timer-hook": "^3.0.8",
     "react-toastify": "^10.0.5",
     "react-visibility-sensor": "^5.1.1",
     "remotion": "^4.0.228",

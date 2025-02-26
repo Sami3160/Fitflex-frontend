@@ -1,114 +1,57 @@
-import React, { useEffect, useState } from 'react'
-import { useCallback, useRef } from "react";
-// import './CircleStyle.module.scss'
+import React, { useState } from 'react';
+import { useTimer } from 'react-timer-hook';
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStop, faPlus } from "@fortawesome/free-solid-svg-icons";
-import styles from './CircleStyle.module.scss'
 export default function AdvanceTimer({ timeAmount, handleClose }) {
-    const [time, setTime] = React.useState(timeAmount);
-    const increaseTime = () => {
-        setTime(time + 15)
+    const [time, setTime] = useState(() => {
+        const newTime = new Date();
+        newTime.setSeconds(newTime.getSeconds() + timeAmount);
+        return newTime;
+    });
+
+    function increaseTime() {
+        const newTime = new Date(time);
+        newTime.setSeconds(newTime.getSeconds() + 15);
+        setTime(newTime);
+        restart(newTime);
     }
-    const skipTime = () => {
-        setTime(0)
+
+    function skipTime() {
+        handleClose && handleClose();
     }
+
+    const { seconds, minutes, isRunning, start, pause, resume, restart } = useTimer({
+        expiryTimestamp: time,
+        onExpire: () => handleClose && handleClose(),
+    });
 
     return (
-        <div className='flex justify-center items-center h-screen'>
-            <h1>Well done!!</h1>
-            <div className="">
-                <h3 className='font-mono'>Take some rest, You can do it!!</h3>
-                <CircleCountDown time={time} close={handleClose} size={200} stroke="#000" strokeWidth={2} />
-                <div className="flex gap-2">
-                    <button className="btn btn-primary p-3 px-5 border-yellow-400 border-2 text-yellow-400 shadow-sm" onClick={increaseTime}><FontAwesomeIcon icon={faPlus} /> Add 15 sec</button>
-                    <button className="btn btn-primary p-3 px-5 border-yellow-400 border-2 text-yellow-400 shadow-sm" onClick={skipTime}> <FontAwesomeIcon icon={faStop} /> Skip</button>
-                </div>
+        <div className='flex flex-col items-center justify-center h-screen  text-white'>
+            <h1 className='text-3xl font-bold mb-4 text-black'>Well done!!</h1>
+            <h3 className='text-lg mb-6 text-black'>Take some rest, You can do it!!</h3>
+            <div className='text-6xl font-mono bg-gray-800 px-8 py-4 rounded-lg shadow-md'>
+                {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
             </div>
-
-        </div>
-    )
-}
-
-
-
-const CircleCountDown = ({
-    time,
-    size,
-    stroke,
-    onComplete,
-    strokeWidth,
-    strokeLinecap = 'round',
-    close,
-}) => {
-    const radius = size / 2;
-    const milliseconds = time * 1000;
-    const circumference = size * Math.PI;
-
-    const [countdown, setCountdown] = useState(milliseconds);
-    const [paused, setPaused] = useState(false);
-    const [intervalId, setIntervalId] = useState(null);
-
-    const seconds = (countdown / 1000).toFixed();
-
-    const strokeDashoffset = circumference - (countdown / milliseconds) * circumference;
-
-    useEffect(() => {
-        if (paused) {
-            clearInterval(intervalId);
-            return;
-        }
-
-        const interval = setInterval(() => {
-            if (countdown > 0) {
-                setCountdown(countdown - 10);
-            } else {
-                clearInterval(interval);
-                onComplete && onComplete();
-                close();
-            }
-        }, 10);
-
-        setIntervalId(interval);
-
-        return () => clearInterval(interval);
-    }, [countdown, paused]);
-
-    const skip = () => {
-        setCountdown(0);
-    };
-
-    const pause = () => {
-        setPaused(!paused);
-    };
-
-    const add15Seconds = () => {
-        setCountdown(countdown + 15000);
-    };
-
-    return (
-        <div className={styles.root}>
-            <label className={styles.seconds}>{seconds}</label>
-            <div className={styles.countDownContainer}>
-                <svg className={styles.svg} width={size} height={size}>
-                    <circle
-                        fill="none"
-                        r={radius}
-                        cx={radius}
-                        cy={radius}
-                        stroke={stroke}
-                        strokeWidth={strokeWidth}
-                        strokeLinecap={strokeLinecap}
-                        strokeDasharray={circumference}
-                        strokeDashoffset={strokeDashoffset}
-                    />
-                </svg>
-            </div>
-            <div className="flex gap-2">
-                <button onClick={add15Seconds}>Add 15 sec</button>
-                <button onClick={skip}>Skip</button>
-                <button onClick={pause}>{paused ? 'Resume' : 'Pause'}</button>
+            <p className='mt-2 text-sm'>{isRunning ? 'Running' : 'Paused'}</p>
+            <div className='flex gap-4 mt-6'>
+                <button onClick={increaseTime} className='px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg shadow'>
+                    +15s
+                </button>
+                <button onClick={skipTime} className='px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg shadow'>
+                    Skip
+                </button>
+                {isRunning ? (
+                    <button onClick={pause} className='px-4 py-2 bg-yellow-500 hover:bg-yellow-400 rounded-lg shadow'>
+                        Pause
+                    </button>
+                ) : (
+                    <button onClick={resume} className='px-4 py-2 bg-green-500 hover:bg-green-400 rounded-lg shadow'>
+                        Resume
+                    </button>
+                )}
+                <button onClick={() => restart(time)} className='px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg shadow'>
+                    Restart
+                </button>
             </div>
         </div>
     );
-};
+}

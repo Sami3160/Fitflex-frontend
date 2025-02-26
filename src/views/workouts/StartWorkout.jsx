@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAsyncError, useNavigate } from 'react-router-dom';
 import { useWorkout } from '../../context/WorkoutContext';
-const AdvanceTimer=React.lazy(()=>import('../../components/AdvanceTimer'))
+const AdvanceTimer = React.lazy(() => import('../../components/AdvanceTimer'))
 
 export default function StartWorkout() {
   const [workoutMeta, setWorkoutMeta] = useState(JSON.parse(localStorage.getItem('exerciseData')) || {});
@@ -20,7 +20,7 @@ export default function StartWorkout() {
   const [currentDay, setCurrentDay] = useState(null);
   const [progress, setProrgess] = useState(0)
   const [advanceTimer, setAdvanceTimer] = useState(false);
-  
+  const [actualExerciseDone, setActualExerciseDone] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,8 +40,6 @@ export default function StartWorkout() {
     if (workoutData) {
       const day = workoutData.roadMap.find(day => day.day === workoutMeta.daysCompleted + 1);
       setCurrentDay(day);
-
-      console.log('current day set', day)
 
       // const fetchData = async () => {
       //   try {
@@ -69,7 +67,7 @@ export default function StartWorkout() {
         }
         const data = await getExerciseById(currentDay?.exercises[exerciseIndex]?.exerciseData);
         setCurrentExercise(data);
-        console.log('exercise data set', currentExercise)
+        // console.log('exercise data set', currentExercise)
       } catch (error) {
         console.error("Error fetching exercise data:", error);
       }
@@ -110,7 +108,12 @@ export default function StartWorkout() {
         setInitialInstruction(true);
         setInstructionIndex(0);
         setStartCountDown(false);
+        setProrgess(0)
         setTime(3);
+        setActualExerciseDone([]);
+        setAdvanceTimer(false);
+        setExerciseIndex(0);
+
       }
     };
 
@@ -159,24 +162,24 @@ export default function StartWorkout() {
   const handleNext = () => {
     if (exerciseIndex == currentDay?.exercise?.length) {
       alert('exercise completed')
-    }else{
+    } else {
       setExerciseIndex((prev) => prev + 1);
-      setProrgess(((exerciseIndex+1)/currentDay?.exercises?.length)*100);
-      
+      setProrgess(((exerciseIndex + 1) / currentDay?.exercises?.length) * 100);
+
       setAdvanceTimer(true);
       // setTimeout(()=>,30000)
     }
   }
 
-  const handlePrevious=()=>{
-    if(exerciseIndex==0){
+  const handlePrevious = () => {
+    if (exerciseIndex == 0) {
       return;
-    }else{
-      setExerciseIndex((prev)=>prev-1)
-      setProrgess((exerciseIndex+1)/currentDay?.exercises?.length)
+    } else {
+      setExerciseIndex((prev) => prev - 1)
+      setProrgess((exerciseIndex + 1) / currentDay?.exercises?.length)
+
     }
   }
-  {console.log(currentDay)}
 
   if (!user) {
     return (
@@ -208,7 +211,7 @@ export default function StartWorkout() {
   const changeInstruction = (opr) => {
     if (opr === 'next') {
       setInstructionIndex((prev) => (prev + 1) % instructions.length);
-      
+
     } else if (opr === 'skip') {
       setInitialInstruction(false);
       setStartCountDown(true);
@@ -284,19 +287,65 @@ export default function StartWorkout() {
                 </div>
               )}
               {(!startCountDown && !initialInstruction && !advanceTimer) && (
-                <ExercisePlayer 
-                _id={currentDay?.exercises[0].exerciseData} 
-                progress={((exerciseIndex + 1) / currentDay?.exercise?.length)} 
-                duration={currentDay?.exercises[0].duration} 
-                data={currentExercise}
-                next={handleNext}
-                previous={handlePrevious}
-                
+                <ExercisePlayer
+                  _id={currentDay?.exercises[exerciseIndex].exerciseData}
+                  progress={((exerciseIndex + 1) / currentDay?.exercise?.length)}
+                  duration={currentDay?.exercises[exerciseIndex].duration}
+                  data={currentExercise}
+                  next={handleNext}
+                  previous={handlePrevious}
+                  updateActualExercise={() => {
+                    if (actualExerciseDone.includes(currentExercise?._id)) {
+                      return;
+                    }
+                    setActualExerciseDone((prev) => [...prev, currentExercise?._id])
+                  }}
                 />
               )}
               {
-                advanceTimer && (
-                  <AdvanceTimer timeAmount={30} handleClose={()=>setAdvanceTimer(false)} />
+                (advanceTimer) && ((exerciseIndex + 1) / currentDay?.exercises?.length <= 1) && (
+                  <AdvanceTimer timeAmount={30} handleClose={() => setAdvanceTimer(false)} />
+                )
+              }
+              {console.log('actualExerciseDone',actualExerciseDone.length)}
+              {console.log('actualExerciseDone',((currentDay?.exercises?.length / 100)*70))}
+              {
+                ((exerciseIndex + 1) / currentDay?.exercises?.length) > 1 && (
+                  actualExerciseDone.length < ((currentDay?.exercises?.length / 100)*70) ? (
+                    <div className="text-4xl text-center">
+                      Need to complete at least  70% of the exercises.
+                      <div className="">
+                        {
+                          currentDay?.exercises?.map((exercise, index) => {
+                            // console.log(actualExerciseDone.includes(exercise._id), exercise._id)
+                            // console.log(exercise?.name)
+                            if (actualExerciseDone.includes(exercise.exerciseData)) {
+
+                              return (
+                                <div key={index} className="mb-1 p-1 border rounded-lg shadow-md flex w-[70%] gap-2 justify-between">
+                                  <h2 className="text-lg font-semibold ml-5">{exercise.name} </h2>
+                                  <p className="text-sm mr-5">Duration: {exercise.duration}</p>
+                                </div>
+                              )
+                            } else {
+                              return (
+                                <div key={index} className="mb-1 p-1 border rounded-lg shadow-md flex w-[70%] gap-2 justify-between">
+                                  <h2 className="text-lg font-semibold ml-5">{exercise.name} (not completed)</h2>
+                                  <p className="text-sm mr-5">Duration: {exercise.duration}</p>
+                                </div>
+                              )
+                            }
+                          })
+                        }
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-4xl text-center flex flex-col justify-center items-center">
+                      Exercise Completed!!
+                      <div className="text-2xl">Congrats on completing day {currentDay?.day}!!</div>
+                      <div className="text-2xl">Return home</div>
+                    </div>
+                  )
                 )
               }
             </div>
@@ -329,7 +378,7 @@ export default function StartWorkout() {
 }
 
 
-function ExercisePlayer({ _id, duration, data, progress, next,previous }) {
+function ExercisePlayer({ _id, duration, data, progress, next, previous, updateActualExercise }) {
   const [time, setTime] = useState(duration.split('-')[0] === 'time' ? duration.split('-')[1] : -1);
   const [reps, setReps] = useState(duration.split('-')[0] === 'reps' ? duration.split('-')[1] : -1);
   const type = duration.split('-')[0];
@@ -351,12 +400,15 @@ function ExercisePlayer({ _id, duration, data, progress, next,previous }) {
         setTime((prev) => prev - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else {
+    } else if (time == 0) {
       setTime(30);
+      updateActualExercise()
+
       next();
     }
   }, [time, events])
-  // console.log(data)
+
+  console.log(duration, time, reps);
 
   return (
     <div className="w-[85vw] h-[90%] m-10 flex ">
@@ -368,22 +420,22 @@ function ExercisePlayer({ _id, duration, data, progress, next,previous }) {
         {/* <img src={data?.imageUrl} className='cover h-72' alt={data?.name} /> */}
         <br />
         {
-          time > 0 ? (
+          time >= 0 ? (
             <div className="text-xl flex flex-col gap-2">
               Time:
               <span className='text-6xl'>00:{time}s</span>
             </div>
           ) : (
             <div className="text-xl flex flex-col gap-2">
-              Time:
-              <span className='text-6xl'>{time}</span>
+              Reps:
+              <span className='text-6xl'>{reps}x</span>
             </div>
           )
         }
         <div className="flex rounded-lg gap-2 justify-between ">
           <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={previous}>Previous</button>
           {
-            type === 'time' ? (
+            type === 'time' && (
               events.pause ? (
                 <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={() => setEvents((prev) => {
                   return { ...prev, pause: false }
@@ -394,8 +446,6 @@ function ExercisePlayer({ _id, duration, data, progress, next,previous }) {
                 })}>Pause</button>
               )
               // <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={pause}>Pause</button>
-            ) : (
-              <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={pause}>Skip</button>
             )
           }
           {
@@ -403,15 +453,14 @@ function ExercisePlayer({ _id, duration, data, progress, next,previous }) {
               <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={() => setTime(30)}>Restart</button>
             )
           }
-          {/* {
-            events.pause ? (
-              <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={previous}>Continue</button>
-            ) : (
-              <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={previous}>Pause</button>
-            )
-          } */}
 
-          <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={next}>Next</button>
+          <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={next}>Skip</button>
+
+
+          <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={() => {
+            updateActualExercise()
+            next()
+          }}>Next</button>
         </div>
 
       </div>
