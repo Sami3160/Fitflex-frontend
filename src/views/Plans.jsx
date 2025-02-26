@@ -1,12 +1,9 @@
 // this component is temperary and will be replaced with the actual workout and exercise components
 
-import { Grid, Typography, Box } from "@mui/material";
+import { Typography, Box } from "@mui/material";
 import { useState, useEffect } from "react";
-import PlansCard from "../components/PlansCard";
-import plansObject from "../data/plans.json";
 import axios from 'axios'
 import PlansCardV2 from "../components/PlanCardsV2";
-import { useWorkout } from "../context/WorkoutContext";
 import { useAuth } from "../context/AuthContext";
 const URL = import.meta.env.VITE_API_URL;
 
@@ -22,7 +19,7 @@ function Plans({ mode, textcolor }) {
       try {
         const response = await axios.get(`${URL}/api/workouts/workouts`)
         setWorkouts(response.data.data)
-        // console.log(response.data.data)
+        console.log(response.data.data)
 
       } catch (error) {
         console.error(error)
@@ -92,10 +89,9 @@ function Plans({ mode, textcolor }) {
                 margin: "8px 0px 8px 0px",
               }}
             >
-              {plans?.map((obj, index) => {
-                // console.log(obj)
+              {/* {workouts?.map((obj, index) => {
                 return <PlansCardV2 key={index} info={obj} />;
-              })}
+              })} */}
             </div>
             {/* <p style={{textWrap:'nowrap'}}>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Maiores sequi adipisci aliquam obcaecati deleniti ipsam, modi iusto necessitatibus tempora rerum optio, blanditiis ducimus. Necessitatibus aliquam quasi sint, sequi vero voluptatum.</p> */}
           </Box>
@@ -119,7 +115,7 @@ function Plans({ mode, textcolor }) {
             </Typography>
             <Box
               sx={{
-                display: "flex",
+                display: "flex", 
                 flexDirection: "row",
                 justifyContent: "start",
                 width: { sm: "90vw", md: "70vw" },

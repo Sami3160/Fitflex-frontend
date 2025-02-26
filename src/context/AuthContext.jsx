@@ -58,14 +58,15 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await axios.get(`${URL}/api/users/info`, {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             })
-            if (response.data) {
-                setUser(response.data.user)
+            // console.log(response)
+            if (response.data.data) {
+                setUser(response.data.data)
                 return
             }
-            console.log(response)
+            // console.log(response)
         } catch (error) {
             console.log("Error in AuthContext.jsx -> refreshUser: \n", error);
         }

@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAsyncError, useNavigate } from 'react-router-dom';
 import { useWorkout } from '../../context/WorkoutContext';
+import axios from 'axios';
+const URL = import.meta.env.VITE_API_URL;
 const AdvanceTimer = React.lazy(() => import('../../components/AdvanceTimer'))
 
 export default function StartWorkout() {
   const [workoutMeta, setWorkoutMeta] = useState(JSON.parse(localStorage.getItem('exerciseData')) || {});
   const [workoutData, setWorkoutData] = useState(null);
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [modalVisible, showModalVisible] = useState(false);
   const { getWorkoutById, getExerciseById } = useWorkout();
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export default function StartWorkout() {
   const [progress, setProrgess] = useState(0)
   const [advanceTimer, setAdvanceTimer] = useState(false);
   const [actualExerciseDone, setActualExerciseDone] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,9 +75,9 @@ export default function StartWorkout() {
         console.error("Error fetching exercise data:", error);
       }
     };
-
     fetchData();
   }, [exerciseIndex, getExerciseById, currentDay]);
+
 
   const handleBegin = () => {
     if (document.documentElement.requestFullscreen) {
@@ -171,6 +174,98 @@ export default function StartWorkout() {
     }
   }
 
+
+
+
+
+
+  //this part has to be done, something sus is happening here, sometimes runes and some times not
+  useEffect(() => {
+    setSaving(true)
+    const updateProgress = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (!storedToken) {
+        return;
+      }
+
+
+
+      //chekcs if exercise index is reaches till end(all exercises are played
+      // and actual exercise done is less than 70% of total exercises
+      if ((((exerciseIndex + 1) / currentDay?.exercises?.length) > 1)
+        &&
+        (actualExerciseDone.length > ((currentDay?.exercises?.length / 100) * 70))
+        && user
+      ) {
+        console.log('exercise completed')
+        const storedToken = localStorage.getItem('token');
+        try {
+          const response = await axios.post(`${URL}/api/users/updateProgress`, {
+
+            workoutId: workoutMeta.workoutId
+
+          }, {
+            headers: {
+              Authorization: `Bearer ${storedToken}`
+            },
+          })
+          if (response.status === 200) {
+            console.log('workout completed')
+            alert('workout completed')
+            setSaving(false)
+          }
+        } catch (error) {
+          setSaving(false)
+          console.error("Error fetching exercise data:", error.response.data);
+
+        } finally {
+
+          refreshUser()
+        }
+      }
+    }
+    updateProgress()
+  }, [exerciseIndex, actualExerciseDone, currentDay, workoutMeta])
+
+
+  useEffect(() => {
+    setSaving(true)
+    const updateProgress = async () => {
+      //enrolling if the user is starting workout from day 1
+      if (!modalVisible
+        && exerciseIndex === 0
+        && currentDay?.day === 1
+        && !(user?.inprogressWorkouts?.includes(currentDay._id))
+        && !(user?.completedWorkouts?.includes(currentDay._id))
+      ) {
+        const storedToken = localStorage.getItem('token');
+        // console.log(storedToken)
+
+
+        try {
+          const response = await axios.post(`${URL}/api/users/enroll`, {
+            workoutId: workoutMeta.workoutId,
+          }, {
+            headers: {
+              Authorization: `Bearer ${storedToken}`
+            }
+          })
+          if (response.status === 200) {
+            console.log('workout completed')
+            // alert('workout completed')
+            setSaving(false)
+          }
+        } catch (error) {
+          setSaving(false)
+          console.error("Error enrolling:", error.response.data);
+
+        } finally {
+          refreshUser()
+        }
+      }
+    }
+    updateProgress()
+  }, [exerciseIndex, actualExerciseDone, currentDay, workoutMeta])
   const handlePrevious = () => {
     if (exerciseIndex == 0) {
       return;
@@ -307,11 +402,11 @@ export default function StartWorkout() {
                   <AdvanceTimer timeAmount={30} handleClose={() => setAdvanceTimer(false)} />
                 )
               }
-              {console.log('actualExerciseDone',actualExerciseDone.length)}
-              {console.log('actualExerciseDone',((currentDay?.exercises?.length / 100)*70))}
+              {/* {console.log('actualExerciseDone',actualExerciseDone.length)}
+              {console.log('actualExerciseDone',((currentDay?.exercises?.length / 100)*70))} */}
               {
                 ((exerciseIndex + 1) / currentDay?.exercises?.length) > 1 && (
-                  actualExerciseDone.length < ((currentDay?.exercises?.length / 100)*70) ? (
+                  actualExerciseDone.length < ((currentDay?.exercises?.length / 100) * 70) ? (
                     <div className="text-4xl text-center">
                       Need to complete at least  70% of the exercises.
                       <div className="">
@@ -343,7 +438,13 @@ export default function StartWorkout() {
                     <div className="text-4xl text-center flex flex-col justify-center items-center">
                       Exercise Completed!!
                       <div className="text-2xl">Congrats on completing day {currentDay?.day}!!</div>
-                      <div className="text-2xl">Return home</div>
+                      {
+                        saving ? (
+                          <div className="text-2xl">Saving Progress...</div>
+                        ) : (
+                          <div className="text-2xl">Return home</div>
+                        )
+                      }
                     </div>
                   )
                 )
