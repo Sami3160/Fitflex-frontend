@@ -72,6 +72,35 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
+    const signup = async (data) => {
+        try {
+            const response = await axios.post(`${URL}/api/users/signup`, {
+                firstname: data.firstName,
+                lastname: data.lastName || '',
+                email: data.email,
+                password: data.password,
+                confirmPassword: data.confirmPassword
+            });
+            
+            if (response.data) {
+                console.log(response);
+                setUser(response.data.user);
+                setToken(response.data.token);
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('_id', response.data.user._id);
+                alert("Registration successful");
+                navigate("/dashboard");
+                return response.data;
+            }
+        } catch (error) {
+            console.error("Signup error:", error);
+            if (error.response?.data?.message) {
+                throw new Error(error.response.data.message);
+            }
+            throw new Error("Registration failed. Please try again.");
+        }
+    }
+
     const logout = () => {
         setUser(null)
         setToken(null)
@@ -80,7 +109,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ user, logout, login, refreshUser }}>
+        <AuthContext.Provider value={{ user, logout, login, signup, refreshUser }}>
             {children}
         </AuthContext.Provider>
     )

@@ -20,17 +20,20 @@ export default function StartWorkout() {
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const [currentExercise, setCurrentExercise] = useState(null);
   const [currentDay, setCurrentDay] = useState(null);
-  const [progress, setProrgess] = useState(0)
+  const [currentDayIndex, setCurrentDayIndex] = useState(JSON.parse(localStorage.getItem('exerciseData')).daysCompleted);
+  const [progress, setProgress] = useState(0)
   const [advanceTimer, setAdvanceTimer] = useState(false);
   const [actualExerciseDone, setActualExerciseDone] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [workoutCompleted, setWorkoutCompleted] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getWorkoutById(workoutMeta.workoutId);
         setWorkoutData(data);
-        console.log('workout data set')
+        // console.log('workout data set')
       } catch (error) {
         console.error("Error fetching workout data:", error);
       }
@@ -43,21 +46,6 @@ export default function StartWorkout() {
     if (workoutData) {
       const day = workoutData.roadMap.find(day => day.day === workoutMeta.daysCompleted + 1);
       setCurrentDay(day);
-
-      // const fetchData = async () => {
-      //   try {
-      //     console.log('exercise data set', currentDay)
-      //     if (!currentDay?.[exerciseIndex]) {
-      //       return;
-      //     }
-      //     const data = await getExerciseById(currentDay[exerciseIndex]?.exerciseData);
-      //     setCurrentExercise(data);
-      //   } catch (error) {
-      //     console.error("Error fetching exercise data:", error);
-      //   }
-      // };
-
-      // fetchData();
     }
 
   }, [workoutData, workoutMeta]);
@@ -111,7 +99,7 @@ export default function StartWorkout() {
         setInitialInstruction(true);
         setInstructionIndex(0);
         setStartCountDown(false);
-        setProrgess(0)
+        setProgress(0)
         setTime(3);
         setActualExerciseDone([]);
         setAdvanceTimer(false);
@@ -163,14 +151,16 @@ export default function StartWorkout() {
     }
   }, [time, startCountDown]);
   const handleNext = () => {
-    if (exerciseIndex == currentDay?.exercise?.length) {
-      alert('exercise completed')
+    const totalExercises = currentDay?.exercises?.length || 0;
+    if (exerciseIndex >= totalExercises - 1) {
+      // Last exercise completed
+      setProgress(100);
+      setWorkoutCompleted(true);
+      setShowCompletionModal(true);
     } else {
       setExerciseIndex((prev) => prev + 1);
-      setProrgess(((exerciseIndex + 1) / currentDay?.exercises?.length) * 100);
-
+      setProgress((progr)=>((exerciseIndex + 1) / totalExercises) * 100);
       setAdvanceTimer(true);
-      // setTimeout(()=>,30000)
     }
   }
 
@@ -179,68 +169,97 @@ export default function StartWorkout() {
 
 
 
-  //this part has to be done, something sus is happening here, sometimes runes and some times not
+  // Update progress when workout day is completed
   useEffect(() => {
-    setSaving(true)
+    console.log("current day ",currentDay)
     const updateProgress = async () => {
       const storedToken = localStorage.getItem('token');
-      if (!storedToken) {
+      if (!storedToken || !user || !currentDay) {
+        setSaving(false);
         return;
       }
 
-
-
-      //chekcs if exercise index is reaches till end(all exercises are played
-      // and actual exercise done is less than 70% of total exercises
-      if ((((exerciseIndex + 1) / currentDay?.exercises?.length) > 1)
-        &&
-        (actualExerciseDone.length > ((currentDay?.exercises?.length / 100) * 70))
-        && user
-      ) {
-        console.log('exercise completed')
-        const storedToken = localStorage.getItem('token');
+      // Check if all exercises are completed and minimum 70% were actually done
+      const totalExercises = currentDay?.exercises?.length || 0;
+      const completionRatio = (actualExerciseDone?.length || 0) / totalExercises;
+      const isWorkoutComplete = exerciseIndex >= totalExercises && completionRatio >= 0.7;
+      if  (completionRatio > 0) {
+      // if(isWorkoutComplete){setSaving(true);}
+        // console.log('Workout day completed, updating progress...');
+        
+        // Calculate score based on completion percentage
+        const score = Math.round(completionRatio * 100);
+        
         try {
+          console.log("workout id ", workoutMeta.workoutId)
           const response = await axios.post(`${URL}/api/users/updateProgress`, {
-
-            workoutId: workoutMeta.workoutId
-
+            workoutId: workoutMeta.workoutId,
+            currentDay:currentDayIndex,
+            score: score
           }, {
             headers: {
               Authorization: `Bearer ${storedToken}`
             },
-          })
-          if (response.status === 200) {
-            console.log('workout completed')
-            alert('workout completed')
-            setSaving(false)
-          }
+          });
+          
+          // if (response.status === 200) {
+          //   console.log('Progress updated successfully');
+          //   const isWorkoutCompleted = response.data.completed;
+            
+          //   if (isWorkoutComplete && isWorkoutCompleted) {
+          //     console.log("modal printing")
+          //     setShowCompletionModal(true);
+          //     setWorkoutCompleted(true);
+          //   } else {
+          //     setShowCompletionModal(true);
+          //     setWorkoutCompleted(false);
+          //   }
+          // }
+          console.log("response ", response)
+          console.log("isWorkoutComplete ",isWorkoutComplete)
         } catch (error) {
-          setSaving(false)
-          console.error("Error fetching exercise data:", error.response.data);
-
+          setSaving(false);
+          console.error("Error updating progress:", error.response?.data || error.message);
+          alert('Failed to save progress. Please try again.');
         } finally {
-
-          refreshUser()
+          setSaving(false);
+          refreshUser();
         }
+
+        if(completionRatio>=0.7 && exerciseIndex>=totalExercises){
+          setShowCompletionModal(true);
+          setWorkoutCompleted(true);
+        }else{
+          setShowCompletionModal(false);
+          setWorkoutCompleted(false);
+        }
+        
+      }else{
+        console.log("not enough exercises done")
       }
-    }
-    updateProgress()
-  }, [exerciseIndex, actualExerciseDone, currentDay, workoutMeta])
+    };
+    
+    updateProgress();
+  }, [exerciseIndex, actualExerciseDone, currentDayIndex, workoutMeta, user, navigate])
 
 
+  // Auto-enroll user when starting workout from day 1
   useEffect(() => {
-    setSaving(true)
-    const updateProgress = async () => {
-      //enrolling if the user is starting workout from day 1
-      if (!modalVisible
-        && exerciseIndex === 0
-        && currentDay?.day === 1
-        && !(user?.inprogressWorkouts?.includes(currentDay._id))
-        && !(user?.completedWorkouts?.includes(currentDay._id))
-      ) {
-        const storedToken = localStorage.getItem('token');
-        // console.log(storedToken)
+    const enrollUser = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (!storedToken || !user || !currentDay) {
+        setSaving(false);
+        return;
+      }
 
+      // Check if user needs to be enrolled (starting day 1 and not already enrolled)
+      const isDay1 = currentDay?.day === 1;
+      const isNotEnrolled = !user?.inprogressWorkouts?.some(w => w.workoutId === workoutMeta.workoutId);
+      const isNotCompleted = !user?.completedWorkouts?.some(w => w.workoutId === workoutMeta.workoutId);
+      
+      if (isDay1 && isNotEnrolled && isNotCompleted && !modalVisible && exerciseIndex === 0) {
+        setSaving(true);
+        console.log('Enrolling user in workout...');
 
         try {
           const response = await axios.post(`${URL}/api/users/enroll`, {
@@ -249,32 +268,65 @@ export default function StartWorkout() {
             headers: {
               Authorization: `Bearer ${storedToken}`
             }
-          })
+          });
+          
           if (response.status === 200) {
-            console.log('workout completed')
-            // alert('workout completed')
-            setSaving(false)
+            console.log('User enrolled successfully');
           }
         } catch (error) {
-          setSaving(false)
-          console.error("Error enrolling:", error.response.data);
-
+          console.error("Error enrolling user:", error.response?.data || error.message);
         } finally {
-          refreshUser()
+          setSaving(false);
+          refreshUser();
         }
+      } else {
+        setSaving(false);
       }
-    }
-    updateProgress()
-  }, [exerciseIndex, actualExerciseDone, currentDay, workoutMeta])
+    };
+    
+    enrollUser();
+  }, [exerciseIndex, currentDay, workoutMeta, user, modalVisible])
   const handlePrevious = () => {
     if (exerciseIndex == 0) {
       return;
     } else {
       setExerciseIndex((prev) => prev - 1)
-      setProrgess((exerciseIndex + 1) / currentDay?.exercises?.length)
-
+      setProgress((prog)=>(exerciseIndex / currentDay?.exercises?.length) * 100)
     }
   }
+  // const updateUserProgress=async ()=>{
+  //   const storedToken = localStorage.getItem('token');
+   
+  //   try {
+  //     const response = await axios.post(`${URL}/api/users/updateProgress`, {
+  //       workoutId: workoutMeta.workoutId,
+  //       score: score
+  //     }, {
+  //       headers: {
+  //         Authorization: `Bearer ${storedToken}`
+  //       },
+  //     });
+      
+  //     if (response.status === 200) {
+  //       console.log('Progress updated successfully');
+  //       const isWorkoutCompleted = response.data.completed;
+        
+  //       if (isWorkoutCompleted) {
+  //         setShowCompletionModal(true);
+  //         setWorkoutCompleted(true);
+  //       } else {
+  //         setShowCompletionModal(true);
+  //         setWorkoutCompleted(false);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating progress:", error.response?.data || error.message);
+  //     alert('Failed to save progress. Please try again.');
+  //   } finally {
+  //     setSaving(false);
+  //     refreshUser();
+  //   }
+  // }
 
   if (!user) {
     return (
@@ -306,6 +358,7 @@ export default function StartWorkout() {
   const changeInstruction = (opr) => {
     if (opr === 'next') {
       setInstructionIndex((prev) => (prev + 1) % instructions.length);
+      console.log(currentDay?.exercises[exerciseIndex]);
 
     } else if (opr === 'skip') {
       setInitialInstruction(false);
@@ -314,142 +367,203 @@ export default function StartWorkout() {
       // setCurrentExercise({ ...currentDay?.exercises[0] });
       startCount();
     } else if (opr === 'previous') {
+      console.log(currentDay?.exercises[exerciseIndex]);
+
       setInstructionIndex((prev) => (prev - 1 + instructions.length) % instructions.length);
     }
   };
 
   return (
-    <div className="mt-24 p-4">
-      {modalVisible && (
-        <div className="fixed top-0 left-0 h-[100vh] w-[100vw] z-[9999] bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-4 relative rounded-lg h-full w-full">
-            <p className="text-xl">You are in full-screen mode. Press <strong>ESC</strong> to exit.</p>
-            <div className='flex gap-2'>
-
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded mt-4 hover:bg-red-600 transition duration-300"
-                onClick={() => {
-                  exitFullScreen();
-                  showModalVisible(false);
-                }}
-              >
-                Exit Fullscreen
-              </button>
-
-              <div className="progress flex flex-col justify-end p-2">
-                <div className="head">{progress}% | Total {currentDay?.exercises?.length} exercises.</div>
-                <div className="bar h-3 w-[80vw] relative  shadow-md rounded-lg">
-                  <div className="h-full bg-yellow-300 rounded-lg absolute z-10" style={{ width: `${progress}%` }}></div>
-                  <div className="h-full w-[100%] bg-gray-300 rounded-lg absolute"></div>
+    <div>
+      {/* Workout Completion Modal */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 z-[10000] bg-black bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-purple-600 via-blue-600 to-green-500 p-1 rounded-2xl max-w-md w-full animate-pulse">
+            <div className="bg-white rounded-xl p-8 text-center">
+              <div className="mb-6">
+                {workoutCompleted ? (
+                  <div className="text-6xl mb-4">🏆</div>
+                ) : (
+                  <div className="text-6xl mb-4">🎉</div>
+                )}
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  {workoutCompleted ? 'Program Complete!' : 'Day Complete!'}
+                </h2>
+                <p className="text-gray-600 text-lg">
+                  {workoutCompleted 
+                    ? 'Amazing! You\'ve completed the entire workout program!' 
+                    : `Great job! You've completed Day ${currentDay?.day}`
+                  }
+                </p>
+              </div>
+              
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white py-3 px-6 rounded-full text-xl font-semibold">
+                  Score: {Math.round((actualExerciseDone.length / (currentDay?.exercises?.length || 1)) * 100)}%
                 </div>
               </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setShowCompletionModal(false);
+                    navigate('/plans');
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105"
+                >
+                  Back to Dashboard
+                </button>
+                
+                {!workoutCompleted && (
+                  <button
+                    onClick={() => {
+                      setShowCompletionModal(false);
+                      exitFullScreen();
+                      showModalVisible(false);
+                    }}
+                    className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300"
+                  >
+                    Continue Tomorrow
+                  </button>
+                )}
+              </div>
             </div>
-            {initialInstruction && (
-              <div className="absolute top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="bg-orange-400 text-white p-5 rounded-lg max-w-lg">
-                  <div className="instruction text-3xl">{instructions[instructionIndex]}</div>
-                  <br />
-                  <div className="flex justify-evenly">
-                    <div className="previous cursor-pointer" onClick={() => changeInstruction('previous')}>
-                      Previous
-                    </div>
+          </div>
+        </div>
+      )}
+
+      {modalVisible && (
+        <div className="fixed top-0 left-0 h-[100vh] w-[100vw] z-[9999] bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+          {/* Modern Header */}
+          <div className="absolute top-0 left-0 right-0 z-20 bg-black bg-opacity-20 backdrop-blur-sm">
+            <div className="flex items-center justify-between p-6">
+              <div className="flex items-center space-x-4">
+                <button
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  onClick={() => {
+                    exitFullScreen();
+                    showModalVisible(false);
+                  }}
+                >
+                  ← Exit Workout
+                </button>
+
+                {saving && (
+                  <div className="flex items-center gap-3 px-4 py-2 bg-blue-500 bg-opacity-20 backdrop-blur-sm rounded-full border border-blue-400">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent"></div>
+                    <span className="text-blue-100 font-medium">Saving...</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-white text-right">
+                <div className="text-sm opacity-75">Day {currentDay?.day}</div>
+                <div className="text-lg font-semibold">Exercise {exerciseIndex + 1} of {currentDay?.exercises?.length}</div>
+              </div>
+            </div>
+
+            {/* Enhanced Progress Bar */}
+            <div className="px-6 pb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white font-semibold">{Math.round(progress)}% Complete</span>
+                <span className="text-white opacity-75">{actualExerciseDone?.length || 0} exercises done</span>
+              </div>
+              <div className="h-3 bg-black bg-opacity-30 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 rounded-full transition-all duration-500 ease-out shadow-lg"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          {/* Modern Instructions Modal */}
+          {initialInstruction && (
+            <div className="absolute inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-30">
+              <div className="bg-gradient-to-br from-orange-500 to-red-500 p-1 rounded-2xl max-w-lg mx-4">
+                <div className="bg-white rounded-xl p-8 text-center">
+                  <div className="text-4xl mb-4">💪</div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Get Ready!</h3>
+                  <div className="text-lg text-gray-700 mb-6 leading-relaxed">
+                    {instructions[instructionIndex]}
+                  </div>
+                  <div className="flex justify-center space-x-4">
+                    <button 
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      onClick={() => changeInstruction('previous')}
+                    >
+                      ← Previous
+                    </button>
                     {instructionIndex < instructions.length - 1 ? (
-                      <div className="next cursor-pointer" onClick={() => changeInstruction('next')}>
-                        Next
-                      </div>
+                      <button 
+                        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                        onClick={() => changeInstruction('next')}
+                      >
+                        Next →
+                      </button>
                     ) : (
-                      <div className="close cursor-pointer" onClick={() => changeInstruction('skip')}>Close</div>
+                      <button 
+                        className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                        onClick={() => changeInstruction('skip')}
+                      >
+                        Start Workout! 🚀
+                      </button>
                     )}
-                    <div className="skip cursor-pointer" onClick={() => changeInstruction('skip')}>
-                      Skip all
-                    </div>
+                    <button 
+                      className="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+                      onClick={() => changeInstruction('skip')}
+                    >
+                      Skip All
+                    </button>
+                  </div>
+                </div>
+              </div>
+              </div>
+            )}
+          
+
+          {/* Main Exercise Area */}
+          <div className="flex justify-center items-center h-full pt-32">
+            {/* Countdown Timer */}
+            {startCountDown && (
+              <div className="text-center">
+                <div className="text-6xl font-bold text-white mb-4 animate-pulse">
+                  {time}
+                </div>
+                <div className="text-2xl text-white opacity-75 mb-8">
+                  Get Ready!
+                </div>
+                <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-2xl p-6 max-w-sm">
+                  <div className="text-white text-lg mb-2">Next Exercise:</div>
+                  <div className="text-2xl font-bold text-yellow-300">
+                    {currentDay?.exercises[exerciseIndex]?.name}
+                  </div>
+                  <div className="text-white opacity-75">
+                    {currentDay?.exercises[exerciseIndex]?.duration}
                   </div>
                 </div>
               </div>
             )}
-            <div className="flex justify-center items-center h-full">
-              {startCountDown && (
-                <div className="text-4xl text-center">
-                  Exercise starts in
-                  <br />
-                  {time}s
-                </div>
-              )}
-              {startCountDown && (
-                <div className="absolute flex flex-col text-lg text-white bottom-10 p-5 px-10 right-10 bg-yellow-400 rounded-xl min-w-52">
-                  Next Exercise
-                  <span className='text-xl font-bold'>{currentDay?.exercises[0].name}, {currentDay?.exercises[0].duration}</span>
-                </div>
-              )}
-              {(!startCountDown && !initialInstruction && !advanceTimer) && (
-                <ExercisePlayer
-                  _id={currentDay?.exercises[exerciseIndex].exerciseData}
-                  progress={((exerciseIndex + 1) / currentDay?.exercise?.length)}
-                  duration={currentDay?.exercises[exerciseIndex].duration}
-                  data={currentExercise}
-                  next={handleNext}
-                  previous={handlePrevious}
-                  updateActualExercise={() => {
-                    if (actualExerciseDone.includes(currentExercise?._id)) {
-                      return;
-                    }
-                    setActualExerciseDone((prev) => [...prev, currentExercise?._id])
-                  }}
-                />
-              )}
-              {
-                (advanceTimer) && ((exerciseIndex + 1) / currentDay?.exercises?.length <= 1) && (
-                  <AdvanceTimer timeAmount={30} handleClose={() => setAdvanceTimer(false)} />
-                )
-              }
-              {/* {console.log('actualExerciseDone',actualExerciseDone.length)}
-              {console.log('actualExerciseDone',((currentDay?.exercises?.length / 100)*70))} */}
-              {
-                ((exerciseIndex + 1) / currentDay?.exercises?.length) > 1 && (
-                  actualExerciseDone.length < ((currentDay?.exercises?.length / 100) * 70) ? (
-                    <div className="text-4xl text-center">
-                      Need to complete at least  70% of the exercises.
-                      <div className="">
-                        {
-                          currentDay?.exercises?.map((exercise, index) => {
-                            // console.log(actualExerciseDone.includes(exercise._id), exercise._id)
-                            // console.log(exercise?.name)
-                            if (actualExerciseDone.includes(exercise.exerciseData)) {
 
-                              return (
-                                <div key={index} className="mb-1 p-1 border rounded-lg shadow-md flex w-[70%] gap-2 justify-between">
-                                  <h2 className="text-lg font-semibold ml-5">{exercise.name} </h2>
-                                  <p className="text-sm mr-5">Duration: {exercise.duration}</p>
-                                </div>
-                              )
-                            } else {
-                              return (
-                                <div key={index} className="mb-1 p-1 border rounded-lg shadow-md flex w-[70%] gap-2 justify-between">
-                                  <h2 className="text-lg font-semibold ml-5">{exercise.name} (not completed)</h2>
-                                  <p className="text-sm mr-5">Duration: {exercise.duration}</p>
-                                </div>
-                              )
-                            }
-                          })
-                        }
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-4xl text-center flex flex-col justify-center items-center">
-                      Exercise Completed!!
-                      <div className="text-2xl">Congrats on completing day {currentDay?.day}!!</div>
-                      {
-                        saving ? (
-                          <div className="text-2xl">Saving Progress...</div>
-                        ) : (
-                          <div className="text-2xl">Return home</div>
-                        )
-                      }
-                    </div>
-                  )
-                )
-              }
-            </div>
+            {/* Exercise Player */}
+            {(!startCountDown && !initialInstruction && !advanceTimer) && (
+              <ExercisePlayer
+                _id={currentExercise?._id}
+                duration={currentDay?.exercises[exerciseIndex]?.duration}
+                data={currentExercise}
+                progress={progress}
+                next={handleNext}
+                previous={handlePrevious}
+                updateActualExercise={setActualExerciseDone}
+              />
+            )}
+
+            {/* Advance Timer */}
+            {advanceTimer && (
+              <AdvanceTimer
+                timeAmount={30}
+                handleClose={() => setAdvanceTimer(false)}
+              />
+            )}
           </div>
         </div>
       )}
@@ -475,13 +589,18 @@ export default function StartWorkout() {
         </button>
       </div>
     </div>
-  );
+  )
+  
 }
 
 
+
 function ExercisePlayer({ _id, duration, data, progress, next, previous, updateActualExercise }) {
-  const [time, setTime] = useState(duration.split('-')[0] === 'time' ? duration.split('-')[1] : -1);
-  const [reps, setReps] = useState(duration.split('-')[0] === 'reps' ? duration.split('-')[1] : -1);
+  // console.log("duration 1 "+duration);
+  const [time, setTime] = useState(duration.split('-')[0] == 'time' ? duration.split('-')[1] : -1);
+  // console.log(time);
+  const [reps, setReps] = useState(duration.split('-')[0] == 'reps' ? duration.split('-')[1] : -1);
+  // console.log(reps);
   const type = duration.split('-')[0];
   const [events, setEvents] = useState({
     pause: false,
@@ -501,91 +620,165 @@ function ExercisePlayer({ _id, duration, data, progress, next, previous, updateA
         setTime((prev) => prev - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (time == 0) {
+    } else if (time == 0 ) {
       setTime(30);
-      updateActualExercise()
+      updateActualExercise((exercises)=>{
+        if(exercises?.includes(_id)){
+          return exercises;
+        }
+        return [...exercises,_id];
+      })
 
       next();
     }
   }, [time, events])
 
-  console.log(duration, time, reps);
+  // console.log("duration 2 "+duration);
 
   return (
-    <div className="w-[85vw] h-[90%] m-10 flex ">
-      <div className="w-1/2 h-full">
-        <span className='text-6xl'>{data?.name}</span>
-        <div className="img" style={{ backgroundImage: `url(${data?.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', height: '360px' }}>
-
+    <div className="w-full h-full flex flex-col lg:flex-row gap-8 p-8 text-white">
+      {/* Left Side - Exercise Display */}
+      <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+        {/* Exercise Title */}
+        <div className="text-center">
+          <h1 className="text-4xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+            {data?.name}
+          </h1>
         </div>
-        {/* <img src={data?.imageUrl} className='cover h-72' alt={data?.name} /> */}
-        <br />
-        {
-          time >= 0 ? (
-            <div className="text-xl flex flex-col gap-2">
-              Time:
-              <span className='text-6xl'>00:{time}s</span>
+
+        {/* Exercise Image */}
+        <div className="relative w-full max-w-md h-80 rounded-2xl overflow-hidden shadow-2xl">
+          <div 
+            className="w-full h-full bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${data?.imageUrl})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+          </div>
+        </div>
+
+        {/* Timer/Reps Display */}
+        <div className="text-center">
+          {time >= 0 ? (
+            <div className="space-y-2">
+              <div className="text-2xl font-semibold text-gray-300">Time Remaining</div>
+              <div className="text-7xl font-bold text-yellow-400 animate-pulse">
+                {Math.floor(time / 60).toString().padStart(2, '0')}:{(time % 60).toString().padStart(2, '0')}
+              </div>
             </div>
           ) : (
-            <div className="text-xl flex flex-col gap-2">
-              Reps:
-              <span className='text-6xl'>{reps}x</span>
+            <div className="space-y-2">
+              <div className="text-2xl font-semibold text-gray-300">Target Reps</div>
+              <div className="text-7xl font-bold text-green-400">
+                {reps}x
+              </div>
             </div>
-          )
-        }
-        <div className="flex rounded-lg gap-2 justify-between ">
-          <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={previous}>Previous</button>
-          {
-            type === 'time' && (
-              events.pause ? (
-                <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={() => setEvents((prev) => {
-                  return { ...prev, pause: false }
-                })}>Continue</button>
-              ) : (
-                <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={() => setEvents((prev) => {
-                  return { ...prev, pause: true }
-                })}>Pause</button>
-              )
-              // <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={pause}>Pause</button>
-            )
-          }
-          {
-            type === 'time' && (
-              <button className='w-[30%] bg-white border-2 border-orange-500 shadow-md text-orange font-bold px-4 py-2 rounded-lg hover:bg-gray-200  transition duration-300' onClick={() => setTime(30)}>Restart</button>
-            )
-          }
-
-          <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={next}>Skip</button>
-
-
-          <button className='w-[30%] bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-300' onClick={() => {
-            updateActualExercise()
-            next()
-          }}>Next</button>
+          )}
         </div>
 
+        {/* Control Buttons */}
+        <div className="flex flex-wrap gap-3 justify-center max-w-lg">
+          <button 
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            onClick={previous}
+          >
+            ← Previous
+          </button>
+          
+          {type === 'time' && (
+            <button 
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                events.pause 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600' 
+                  : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600'
+              }`}
+              onClick={() => setEvents(prev => ({ ...prev, pause: !prev.pause }))}
+            >
+              {events.pause ? '▶ Resume' : '⏸ Pause'}
+            </button>
+          )}
+
+          {type === 'time' && (
+            <button 
+              className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              onClick={() => setTime(30)}
+            >
+              🔄 Restart
+            </button>
+          )}
+
+          <button 
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            onClick={next}
+          >
+            Skip ⏭
+          </button>
+
+          <button 
+            className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-semibold hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            onClick={() => {
+              setEvents((prev)=>({...prev,completed:true}))
+              // updateActualExercise();
+              updateActualExercise((exercises)=>{
+                if(exercises?.includes(_id)){
+                  return exercises;
+                }
+                return [...exercises,_id];
+              })
+              next();
+            }}
+          >
+            Complete ✓
+          </button>
+        </div>
       </div>
-      <div className="w-1/2 h-full flex flex-col gap-6 px-4">
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Focus Areas</h2>
-          <ul className="list-disc list-inside ml-4">
-            {data?.focusArea.map((area, index) => (
-              <li key={index} className="text-lg">{area}</li>
+
+      {/* Right Side - Exercise Details */}
+      <div className="flex-1 space-y-8 max-w-lg">
+        {/* Focus Areas */}
+        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+          <h2 className="text-2xl font-bold mb-4 text-yellow-400 flex items-center gap-2">
+            🎯 Focus Areas
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {data?.focusArea?.map((area, index) => (
+              <span 
+                key={index} 
+                className="px-3 py-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full text-sm font-medium"
+              >
+                {area}
+              </span>
             ))}
-          </ul>
+          </div>
         </div>
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Instructions</h2>
-          <p className="text-lg leading-relaxed">{data?.instructions}</p>
+
+        {/* Instructions */}
+        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+          <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center gap-2">
+            📋 Instructions
+          </h2>
+          <p className="text-gray-200 leading-relaxed">{data?.instructions}</p>
         </div>
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Tips</h2>
-          <p className="text-lg leading-relaxed">{data?.tips}</p>
+
+        {/* Tips */}
+        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+          <h2 className="text-2xl font-bold mb-4 text-orange-400 flex items-center gap-2">
+            💡 Tips
+          </h2>
+          <p className="text-gray-200 leading-relaxed">{data?.tips}</p>
         </div>
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Video</h2>
-          <a href={data?.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-600 transition duration-300">
-            Watch Video
+
+        {/* Video Link */}
+        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+          <h2 className="text-2xl font-bold mb-4 text-red-400 flex items-center gap-2">
+            🎥 Video Guide
+          </h2>
+          <a 
+            href={data?.videoUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
+          >
+            ▶ Watch Video
           </a>
         </div>
       </div>
