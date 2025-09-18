@@ -14,6 +14,7 @@ export default function IndividialWorkout() {
     const navigate = useNavigate()
     const [status, setStatus] = useState("new")
     const [daysCompleted, setDaysCompleted] = useState(0)
+    const [dayCompletedIndex, setDayCompletedIndex] = useState({})
 
     const { user } = useAuth()
     const [loading, setLoading] = useState(true);
@@ -32,7 +33,16 @@ export default function IndividialWorkout() {
                     for (let obj of user?.inprogressWorkouts) {
                         if (obj.workoutId === workoutId) {
                             setStatus("inprogress")
-                            setDaysCompleted(obj.daysCompleted)
+                            // console.log(obj.daysProgress)
+                            let c=0
+                            for(let key in obj?.daysProgress){
+                                console.log(key)
+                                if(obj.daysProgress[key].completed){
+                                    c++
+                                }
+                            }
+                            setDaysCompleted((c) => c)
+                            setDayCompletedIndex(obj?.daysProgress)
                             break
                         }
                     }
@@ -88,25 +98,25 @@ export default function IndividialWorkout() {
                         <div className="title">Overview</div>
                     </div>
                     {
-                        status == "completed" && workoutData?.roadMap.map((element, index) => {
+                        // status == "completed" && workoutData?.roadMap.map((element, index) => {
 
-                            return (
-                                <div key={index} className="overview h-20  border  border-[#212128] text-black  flex justify-between items-center">
-                                    <div className="flex items-center gap-2 ml-5">
+                        //     return (
+                        //         <div key={index} className="overview h-20  border  border-[#212128] text-black  flex justify-between items-center">
+                        //             <div className="flex items-center gap-2 ml-5">
 
-                                        <div className="title">{element?.title}</div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30" viewBox="0 0 48 48">
-                                            <path fill="#c8e6c9" d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"></path><path fill="#4caf50" d="M34.586,14.586l-13.57,13.586l-5.602-5.586l-2.828,2.828l8.434,8.414l16.395-16.414L34.586,14.586z"></path>
-                                        </svg>
-                                    </div>
-                                    <img width="65" height="65" src={replay} className='cursor-pointer mr-5' alt="restart--v1" onClick={() => {
+                        //                 <div className="title">{element?.title}</div>
+                        //                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30" viewBox="0 0 48 48">
+                        //                     <path fill="#c8e6c9" d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"></path><path fill="#4caf50" d="M34.586,14.586l-13.57,13.586l-5.602-5.586l-2.828,2.828l8.434,8.414l16.395-16.414L34.586,14.586z"></path>
+                        //                 </svg>
+                        //             </div>
+                        //             <img width="65" height="65" src={replay} className='cursor-pointer mr-5' alt="restart--v1" onClick={() => {
 
-                                        startWorkout(workoutId, index, "inprogress")
-                                    }} />
-                                    {/* <img width="65" height="65" className='cursor-pointer mr-5' src="https://img.icons8.com/material-two-tone/96/circled-play--v1.png" alt="circled-play--v1"/> */}
-                                </div>
-                            )
-                        })
+                        //                 startWorkout(workoutId, index, "inprogress")
+                        //             }} />
+                        //             {/* <img width="65" height="65" className='cursor-pointer mr-5' src="https://img.icons8.com/material-two-tone/96/circled-play--v1.png" alt="circled-play--v1"/> */}
+                        //         </div>
+                        //     )
+                        // })
                     }
                     {
                         status != "completed" && workoutData?.roadMap.map((element, index) => {
@@ -117,7 +127,7 @@ export default function IndividialWorkout() {
 
                                         <div className="title">{element?.title}</div>
                                         {
-                                            index < daysCompleted ?
+                                            dayCompletedIndex[index] && dayCompletedIndex[index]?.completed ?
                                                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30" viewBox="0 0 48 48">
                                                     <path fill="#c8e6c9" d="M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z"></path><path fill="#4caf50" d="M34.586,14.586l-13.57,13.586l-5.602-5.586l-2.828,2.828l8.434,8.414l16.395-16.414L34.586,14.586z"></path>
                                                 </svg>
@@ -127,7 +137,7 @@ export default function IndividialWorkout() {
 
                                     </div>
                                     {
-                                        index < daysCompleted ?
+                                        dayCompletedIndex[index] && dayCompletedIndex[index]?.completed  ?
                                             <img width="65" height="65" src={replay} className='cursor-pointer mr-5' alt="restart--v1" onClick={() => {
                                                 // if (index > daysCompleted) {
                                                 //     alert("Please complete the previous days workout first")
