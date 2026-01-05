@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function RightSideContent({ info, isLogged, status, daysCompleted, workoutId }) {
+export default function RightSideContent({ info, navigate,  isLogged }) {
     const sentences = info?.description?.split('.').filter(Boolean);
     const content = [];
     let resumeDay = 0
@@ -20,49 +20,21 @@ export default function RightSideContent({ info, isLogged, status, daysCompleted
                 })
             }
             <br /><br />
-            <LetsGetStarted isLogged={isLogged} status={status} _id={workoutId} daysCompleted={daysCompleted} />
+            <LetsGetStarted navigate={navigate} isLogged={isLogged} />
         </div>
     )
 }
 
-const LetsGetStarted = ({ isLogged, status, _id, daysCompleted }) => {
+const LetsGetStarted = ({ isLogged, navigate }) => {
     return (
         <div className="relative group">
             <button
                 className="relative inline-block p-px font-semibold leading-6 text-white bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95"
                 onClick={() => {
                     if (isLogged) {
-                        if (status === "inprogress") {
-                            const res = confirm("Want to resume the workout or start from the beginning?")
-                            if (res) {
-                                const data = {
-                                    workoutId: _id,
-                                    daysCompleted: daysCompleted,
-                                    status: "inprogress",
-                                }
-                                localStorage.setItem("exerciseData", JSON.stringify(data))
-                                window.open(`/startWorkout`, "blank")
-                            } else {
-                                const data = {
-                                    workoutId: _id,
-                                    daysCompleted: 0,
-                                    status: "inprogress",
-                                }
-                                localStorage.setItem("exerciseData", JSON.stringify(data))
-                                window.open(`/startWorkout`, "blank")
-                            }
-                        } else {
-                            const data = {
-                                workoutId: _id,
-                                daysCompleted: 0,
-                                status: "new",
-                            }
-                            localStorage.setItem("exerciseData", JSON.stringify(data))
-                            window.open(`/startWorkout`, "blank")
-                        }
+                        navigate()
                     } else {
                         alert("Please login to continue")
-                        // console.log("Not logged in")
                     }
                 }}
             >

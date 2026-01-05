@@ -58,7 +58,7 @@ function HealthTipsCard({ tip }) {
         <div
           style={{
             bottom: 0, // Set to bottom to touch the bottom of the card
-            zIndex: 1,
+            zindex: 1,
             backgroundColor: "transparent",
             width: "100%",
             backdropFilter: "blur(10px)",

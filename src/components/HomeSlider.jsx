@@ -50,7 +50,7 @@ export default function HomeSlider({ object }) {
               objectFit: "cover",
               width: "100%",
               height: "95vh",
-              zIndex: 0,
+              zindex: 0,
             }}
           />
           <Typography
@@ -67,7 +67,7 @@ export default function HomeSlider({ object }) {
               textAlign: "center",
               textWrap: "wrap",
               // margin:"auto",
-              zIndex: 20,
+              zindex: 20,
             }}
           >
             {item.title}
@@ -100,7 +100,7 @@ function SampleNextArrow(props) {
         color: "wihte",
         backgroundColor: "white",
         fontSize: "100px", 
-        zIndex: 1,  
+        zindex: 1,  
       }}
       onClick={onClick}
     />
@@ -121,7 +121,7 @@ function SamplePrevArrow(props) {
         color: "wihte",
         backgroundColor: "white",
         fontSize: "100px", 
-        zIndex: 1,
+        zindex: 1,
       }}
       onClick={onClick}
     ></Box>

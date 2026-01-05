@@ -67,7 +67,7 @@ import {
             style={{
               position: "absolute",
               top: "40%",
-              zIndex: 1,
+              zindex: 1,
               padding: "1px",
               backdropFilter: "blur(2px)",
               display: "inline",
