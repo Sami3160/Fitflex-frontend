@@ -135,7 +135,7 @@ const Login = () => {
             color: "red",
             fontSize: "1.9rem",
             fontWeight: "bold",
-            zIndex: 10,
+            zindex: 10,
           }}
         >
           Log In

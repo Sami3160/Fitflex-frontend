@@ -166,7 +166,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 1000,
+    zindex: 1000,
     animation: "fadeIn 0.3s ease",
   },
   modalContent: {

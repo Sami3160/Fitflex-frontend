@@ -21,12 +21,14 @@ const StartWorkout = lazy(() => import("./views/workouts/StartWorkout.jsx"));
 const About = lazy(() => import("./views/About.jsx"));
 const Profile = lazy(() => import("./views/Profile.jsx"));
 const Plans = lazy(() => import("./views/Plans.jsx"));
-const IndividualWorkout = lazy(() => import('./views/workouts/IndividialWorkout.jsx'))
+const IndividualWorkout = lazy(() => import('./views/workouts/IndividialWorkout.jsx'));
+const ExercisePlayer = lazy(() => import('./views/workouts/ExercisePlayer.jsx'));
 // const HealthTips = lazy(() => import("./components/Healthtips.jsx"));
 // import HealthTips from './components/HealthTips'; // Make sure this path is correct
 const Blog = lazy(() => import("./views/Blog.jsx"));
 const Services = lazy(() => import("./views/Services.jsx"));
-
+const FullLayout= lazy(() => import("./layout/FullLayout.jsx"));
+const FullscreenLayout= lazy(() => import("./layout/FullscreenLayout.jsx"));
 
 import ProgressBar from "./components/ProgressBar.jsx";
 import DietRecommendation from "./components/DietRecommendation.jsx";
@@ -71,78 +73,55 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <WorkoutProvider>
-              < Metadata />
-              <ProgressBar />
-              <Navbar mode={mode} toggleMode={toggleMode} />
+              <Metadata />
+
               <Routes>
+
+                {/* NORMAL PAGES */}
                 <Route
-                  path="/"
-                  element={<Home mode={mode} textcolor={textcolor} />}
-                />
-                <Route
-                  path="/home"
-                  element={<Home mode={mode} textcolor={textcolor} />}
-                />
-                <Route path="/contact" element={<Contact mode={mode} />} />
-                <Route
-                  path="/about"
-                  element={<About mode={mode} textcolor={textcolor} />}
-                />
-                <Route
-                  path="/plans"
-                  element={<Plans mode={mode} textcolor={textcolor} />}
-                />
-                <Route
-                  path="/plans/workouts/:workoutId/overview"
-                  element={<IndividualWorkout mode={mode} textcolor={textcolor} />}
-                />
-                <Route
-                  path="/workout/:workoutId"
-                  element={<IndividualWorkout mode={mode} textcolor={textcolor} />}
-                />
-                <Route path="/progress" element={<Profile />} />
-                <Route path="/profile" element={<Profile />} />
+                  element={
+                    <FullLayout
+                      mode={mode}
+                      toggleMode={toggleMode}
+                      textcolor={textcolor}
+                    />
+                  }
+                >
+                  <Route path="/" element={<Home mode={mode} textcolor={textcolor} />} />
+                  <Route path="/home" element={<Home mode={mode} textcolor={textcolor} />} />
+                  <Route path="/about" element={<About mode={mode} textcolor={textcolor} />} />
+                  <Route path="/plans" element={<Plans mode={mode} textcolor={textcolor} />} />
+                  <Route
+    path="/plans/workouts/:workoutId/overview"
+    element={<IndividualWorkout mode={mode} textcolor={textcolor} />}
+  />
+                  <Route path="/blog" element={<Blog mode={mode} textcolor={textcolor} />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/progress" element={<Profile />} />
+                  <Route path="/contact" element={<Contact mode={mode} />} />
+                  <Route path="/services" element={<Services mode={mode} textcolor={textcolor} />} />
+                  <Route path="/contributors" element={<Contributors mode={mode} textcolor={textcolor} />} />
+                  <Route path="/startWorkout" element={<StartWorkout />} />
+                </Route>
+
+                {/* FULLSCREEN */}
+                <Route element={<FullscreenLayout />}>
+                  <Route path="/exerciseplayer" element={<ExercisePlayer />} />
+                </Route>
+
+                {/* AUTH / SIMPLE */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                <Route path="/forgot-password" element={<ForgotPassword />} /> {"forgot password path"}
-
-                <Route path="/*" element={<NotFound />} />
-                <Route path="/healthtips" element={<HealthTips />} />
-                <Route path="/startWorkout" element={<StartWorkout />} />
-                <Route
-                  path="/blog"
-                  element={<Blog mode={mode} textcolor={textcolor} />}
-                />
-                <Route
-
-
-                  path="/Contributors"
-                  element={<Contributors mode={mode} textcolor={textcolor} />}
-                />
-                <Route
-
-                  path="/services"
-                  element={<Services mode={mode} textcolor={textcolor} />}
-                />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
-                <Route path="/dietrecommendation" element={<DietRecommendation />} />
-                <Route path="/terms-of-use" element={<TermsOfUse />} />
-                <Route
-                  path="/contributor"
-                  element={<Contributor mode={mode} textcolor={textcolor} />}
-                />
-                {/* <Route path="/uploadBlog" element={<UploadBlog />} /> */}
+                {/* FALLBACK */}
+                <Route path="*" element={<NotFound />} />
 
               </Routes>
-              <Footer />
-              <BackToTopButton />
-
-              {/* <FItFlexChatBot/> */}
             </WorkoutProvider>
           </AuthProvider>
         </BrowserRouter>
+
       </Suspense>
     </>
   );
