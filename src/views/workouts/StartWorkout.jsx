@@ -165,7 +165,7 @@ export default function StartWorkout() {
 
   // Update progress when workout day is completed
   useEffect(() => {
-    console.log("current day ",currentDay)
+    // console.log("current day ",currentDay)
     const updateProgress = async () => {
       const storedToken = localStorage.getItem('token');
       if (!storedToken || !user || !currentDay) {
@@ -473,7 +473,7 @@ export default function StartWorkout() {
       )}
       <div className="flex flex-col items-center mb-9 mt-36 relative">
         
-      <div className="backBtn absolute right-16 top-0 cursor-pointer flex underline" onClick={() => navigate(-1)}>
+      <div className="backBtn absolute right-16 top-0 cursor-pointer flex underline" onClick={() => navigate("/plans")}>
         <img width="28" height="28" src="https://img.icons8.com/deco-glyph/48/back.png" alt="back"/>
         <p className="text-black  text-xl">Go Back</p>
       </div>

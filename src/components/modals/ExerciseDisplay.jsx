@@ -35,7 +35,7 @@ const ExerciseDisplay = ({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col lg:flex-row gap-6 lg:gap-10 h-full px-4 pb-6"
+      className="flex flex-col lg:flex-row gap-6 lg:gap-10  px-4 pb-6 h-[calc(100vh-4rem)] lg:h-[calc(100vh-6rem)] overflow-auto"
     >
       {/* Left Side - Image/Video */}
       <div className="flex-1 flex flex-col">
@@ -46,13 +46,13 @@ const ExerciseDisplay = ({
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-          
+
           {/* Exercise Counter */}
-          <div className="absolute top-4 left-4">
+          {/* <div className="absolute top-4 left-4">
             <Badge className="bg-secondary/90 text-foreground font-semibold px-3 py-1">
               {currentIndex + 1} / {totalExercises}
             </Badge>
-          </div>
+          </div> */}
 
           {/* Timer/Reps Overlay */}
           <div className="absolute bottom-6 left-6 right-6">
@@ -70,7 +70,7 @@ const ExerciseDisplay = ({
                   ))}
                 </div>
               </div>
-              
+
               {/* Big Timer/Reps Display */}
               <div className="text-right">
                 {isTimeBased && timeRemaining !== null ? (
@@ -92,6 +92,15 @@ const ExerciseDisplay = ({
               </div>
             </div>
           </div>
+          <div class="absolute top-6 right-6">
+            <div class="bg-white/95 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-soft">
+              <div class="text-center">
+                <span class="font-display text-5xl text-gradient">#{currentIndex+1}</span>
+                <span class="text-muted-foreground text-sm block">Exercise</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -125,9 +134,10 @@ const ExerciseDisplay = ({
             size="lg"
             onClick={onPrevious}
             disabled={currentIndex === 0}
-            className="rounded-xl h-14"
+            className="rounded-xl flex items-center justify-center h-14 bg-secondary/80 text-back shadow-button hover:opacity-80 transition-opacity duration-300 shadow-md"
           >
             <ChevronLeft className="w-6 h-6" />
+
           </button>
 
           {isTimeBased && (
@@ -135,9 +145,10 @@ const ExerciseDisplay = ({
               variant="secondary"
               size="lg"
               onClick={isPaused ? onResume : onPause}
-              className="rounded-xl h-14"
+              className="rounded-xl flex items-center justify-center h-14 bg-secondary/80 text-back shadow-button hover:opacity-80 transition-opacity duration-300 shadow-md"
             >
               {isPaused ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
+              {isPaused ? <p>Play</p> : <p>Pause</p>}
             </button>
           )}
 
@@ -145,19 +156,20 @@ const ExerciseDisplay = ({
             variant="secondary"
             size="lg"
             onClick={onSkip}
-            className="rounded-xl h-14 border"
+            className="rounded-xl flex items-center justify-center h-14 bg-secondary/80 text-back shadow-button hover:opacity-80 transition-opacity duration-300 shadow-md"
           >
             <SkipForward className="w-6 h-6 " />
+            <p>Skip</p>
           </button>
 
           <button
             size="lg"
             onClick={onComplete}
-            className={`rounded-xl h-14 bg-orange-300 text-back shadow-button hover:opacity-90 transition-opacity ${
-              !isTimeBased ? "col-span-2" : ""
-            }`}
+            className={`rounded-xl flex items-center justify-center h-14 bg-orange-300 text-back shadow-button hover:opacity-80 transition-opacity duration-300 shadow-md ${!isTimeBased ? "col-span-2" : ""
+              }`}
           >
             <Check className="w-6 h-6" />
+            <p>Done</p>
           </button>
         </div>
       </div>

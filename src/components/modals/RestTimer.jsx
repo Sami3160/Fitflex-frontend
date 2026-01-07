@@ -66,16 +66,28 @@ const RestTimer = ({
       </div>
       {/* Time Controls */}
       <div className="flex gap-4 mb-8">
-        <Button
+        {/* <Button
           variant="secondary"
           size="lg"
           onClick={onReduceTime}
           disabled={timeRemaining <= 10}
           className="rounded-full w-14 h-14"
         >
-          <Minus className="w-6 h-6" />
-        </Button>
-        <Button
+        </Button> */}
+        <button 
+        onClick={onReduceTime}
+        className="flex justify-center gap-2 items-center mx-auto shadow-xl text-lg bg-gray-50 backdrop-blur-md lg:font-semibold isolation-auto border-gray-50  hover:bg-secondary/80 transition-colors duration-300 ease-in-out   relative z-10 px-4 py-2 overflow-hidden border-2 rounded-full">
+        <Minus className="w-6 h-6" />
+
+        </button>
+        <button 
+        onClick={onAddTime}
+        className="flex justify-center gap-2 items-center mx-auto shadow-xl text-lg bg-gray-50 backdrop-blur-md lg:font-semibold isolation-auto border-gray-50  hover:bg-secondary/80 transition-colors duration-300 ease-in-out   relative z-10 px-4 py-2 overflow-hidden border-2 rounded-full">
+        <Plus className="w-6 h-6" />
+
+        </button>
+
+        {/* <Button
           variant="secondary"
           size="lg"
           onClick={onAddTime}
@@ -83,16 +95,16 @@ const RestTimer = ({
         >
           <Plus className="w-6 h-6" />
         </Button>
-      </div>
+      </div> */}
 
-      {/* Skip Button */}
-      <Button
+      </div>
+      <button
         onClick={onSkip}
-        className="gradient-rest text-foreground font-semibold px-8 py-6 text-lg rounded-xl shadow-button hover:opacity-90 transition-opacity"
+        className="flex justify-center gap-2 items-center mx-auto shadow-xl text-lg bg-gray-50 backdrop-blur-md lg:font-semibold isolation-auto border-gray-50  hover:bg-secondary/80 transition-colors duration-300 ease-in-out   relative z-10 px-4 py-2 overflow-hidden border-2 rounded-xl"
       >
         <SkipForward className="w-5 h-5 mr-2" />
         Skip Rest
-      </Button>
+      </button>
 
       {/* Next Up */}
       <div className="mt-10 text-center">

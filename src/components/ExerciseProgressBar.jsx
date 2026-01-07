@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const ExerciseProgressBar = ({ current, total }) => {
   const progress = (current / total) * 100;
-
+    
   return (
     <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
       <motion.div

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, XCircle, Home, RotateCcw } from "lucide-react";
+import { Trophy, XCircle, Home, RotateCcw ,Flame} from "lucide-react";
 import { Button } from "../ui/button";
 
 
@@ -32,29 +32,19 @@ const CompletionModal = ({
             <>
               {/* Success State */}
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-                className="w-24 h-24 mx-auto mb-6 rounded-full gradient-primary flex items-center justify-center shadow-glow animate-pulse-glow"
-              >
-                <Trophy className="w-12 h-12 text-primary-foreground" />
-              </motion.div>
-
-              <h2 className="font-display text-5xl text-foreground mb-2">
-                WORKOUT COMPLETE!
-              </h2>
-              <p className="text-muted-foreground text-lg mb-6">
-                Amazing effort! You crushed it!
-              </p>
-
-              <div className="gradient-primary rounded-2xl p-6 mb-8">
-                <p className="text-primary-foreground/80 text-sm uppercase tracking-wider mb-1">
-                  Completion Rate
-                </p>
-                <p className="font-display text-6xl text-primary-foreground">
-                  {Math.round(completionPercentage)}%
-                </p>
-              </div>
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", delay: 0.2 }}
+                  className="w-20 h-20 mx-auto mb-6 rounded-full gradient-fire flex items-center justify-center shadow-warm"
+                >
+                  <Flame className="w-10 h-10 text-primary-foreground" />
+                </motion.div>
+                <h2 className="font-display text-4xl text-foreground mb-2">Workout Complete!</h2>
+                <p className="text-muted-foreground mb-6">Amazing effort! You crushed it!</p>
+                <div className="gradient-fire rounded-2xl p-6 mb-8">
+                  <p className="text-primary-foreground/80 text-sm uppercase tracking-wider mb-1">Completion Rate</p>
+                  <p className="font-display text-5xl text-primary-foreground">{Math.round(completionPercentage)}%</p>
+                </div>
             </>
           ) : (
             <>
@@ -86,27 +76,28 @@ const CompletionModal = ({
             </>
           )}
 
-          <div className="flex gap-4">
-            {!isSuccess && onRetry && (
-              <Button
-                onClick={onRetry}
-                variant="secondary"
-                size="lg"
-                className="flex-1 rounded-xl h-14"
-              >
-                <RotateCcw className="w-5 h-5 mr-2" />
-                Retry
-              </Button>
+          <div className="flex gap-4 justify-between">
+            {!isSuccess  && (
+              <button 
+                onClick={onRetry}              
+              className="relative w-[48%] flex flex-wrap items-center justify-center py-3 pl-4 pr-14 rounded-lg text-base font-medium [transition:all_0.5s_ease] border-solid border border-[#f85149] text-[#b22b2b] [&amp;_svg]:text-[#b22b2b] group bg-[linear-gradient(#f851491a,#f851491a)]">
+
+                   <RotateCcw className="w-5 h-5 mr-2" />
+                   Retry
+
+              </button>
             )}
-            <Button
+            
+            <button className={`relative  flex flex-wrap items-center justify-center py-3 pl-4 pr-14 rounded-lg text-base font-medium [transition:all_0.5s_ease] border-solid border   
+                ${isSuccess  ? "w-full flex border-green-700 text-green-800 [&amp;_svg]:text-green-800 group bg-[linear-gradient(#f851491a,#f851491a)]" : "w-[48%] flex border-[#f85149] text-[#b22b2b] [&amp;_svg]:text-[#b22b2b] group bg-[linear-gradient(#f851491a,#f851491a)]"}
+              `}
               onClick={onGoHome}
-              className={`rounded-xl h-14 gradient-primary text-primary-foreground shadow-button hover:opacity-90 transition-opacity ${
-                isSuccess || !onRetry ? "w-full" : "flex-1"
-              }`}
-            >
+              
+              >
+
               <Home className="w-5 h-5 mr-2" />
               Go Home
-            </Button>
+            </button>
           </div>
         </motion.div>
       </motion.div>

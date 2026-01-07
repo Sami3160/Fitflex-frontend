@@ -11,7 +11,9 @@ import RestTimer from "../../components/modals/RestTimer.jsx";
 import CompletionModal from "../../components/modals/CompletionModal.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import { CloseButton } from "../../components/ui/close-button.jsx";
+import axios from "axios";
 function ExercisePlayer() {
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const location = useLocation();
     const navigate = useNavigate();
     const dayNumber = location.state?.day || 0;
@@ -51,31 +53,31 @@ function ExercisePlayer() {
             icon: "😮‍💨",
         },
     ];
-      // Fetch workout data
-  useEffect(() => {
-    const fetchWorkoutData = async () => {
-      try {
-        const workoutData = await getWorkoutByDay(workoutId, dayNumber);
-        console.log("Fetched workout data:", workoutData.data);
-        setExercises(workoutData.data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch workout:", error);
-        setIsLoading(false);
-      }
-    };
+    // Fetch workout data
+    useEffect(() => {
+        const fetchWorkoutData = async () => {
+            try {
+                const workoutData = await getWorkoutByDay(workoutId, dayNumber);
+                // console.log("Fetched workout data:", workoutData.data);
+                setExercises(workoutData.data);
+                setIsLoading(false);
+            } catch (error) {
+                console.error("Failed to fetch workout:", error);
+                setIsLoading(false);
+            }
+        };
 
-    fetchWorkoutData();
-  }, [workoutId, dayNumber]);
-//   useEffect(()=>{
-//     document.onfullscreenchange = () => {
-//         if (document.fullscreenElement) {
-//             setIsFullscreen(true);
-//         } else {
-//             setIsFullscreen(false);
-//         }
-//     };
-//     }, []);
+        fetchWorkoutData();
+    }, [workoutId, dayNumber]);
+    //   useEffect(()=>{
+    //     document.onfullscreenchange = () => {
+    //         if (document.fullscreenElement) {
+    //             setIsFullscreen(true);
+    //         } else {
+    //             setIsFullscreen(false);
+    //         }
+    //     };
+    //     }, []);
 
 
 
@@ -153,16 +155,22 @@ function ExercisePlayer() {
     const handleCompleteExercise = async () => {
         // Send completion to backend
         try {
-            // await fetch(`${BASE_URL}/complete-exercise`, {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({
-            //     day: dayNumber,
-            //     workoutId,
-            //     exerciseId: exercises[currentExerciseIndex]?.exerciseData._id.$oid,
-            //   }),
-            // });
-            console.log("Exercise completed:", currentExerciseIndex);
+            console.table({
+                workoutId,
+                day: dayNumber,
+                exerciseId: exercises[currentExerciseIndex]?.exerciseData._id,
+                currentExerciseIndex
+            })
+            // /workouts/:id/day/:n/exercise/:x/complete
+            const response = await axios.post(`${BASE_URL}/api/users/workouts/${workoutId}/day/${dayNumber + 1}/exercise/${currentExerciseIndex + 1}/complete`, {
+                exerciseId: exercises[currentExerciseIndex]?.exerciseData._id,
+                totalExercises: exercises.length,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            console.log("Response:", response.data);
         } catch (error) {
             console.error("Failed to record completion:", error);
         }
@@ -188,7 +196,7 @@ function ExercisePlayer() {
 
     const handlePreviousExercise = () => {
         if (currentExerciseIndex > 0) {
-            setCurrentExerciseIndex(currentExerciseIndex - 1);
+            setCurrentExerciseIndex((prev)=>prev - 1);
             setTimeRemaining(null);
             setPhase("countdown");
         }
@@ -200,17 +208,33 @@ function ExercisePlayer() {
         setPhase("countdown");
     };
 
+    const handleRetry = () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => { });
+        }
+        navigate("/startWorkout", {
+            state: {
+                day:dayNumber,
+                workoutId: workoutId,
+            },
+        });
+    }
+
     const checkCompletion = async () => {
         // Fetch completion percentage from backend
         try {
-            // const response = await fetch(`${BASE_URL}/completion-percentage`, {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ workoutId, day: dayNumber }),
-            // });
+            const response = await axios.post(`${BASE_URL}/api/users/workouts/${workoutId}/day/${dayNumber + 1}/complete`, {
+                exerciseId: exercises[currentExerciseIndex]?.exerciseData._id
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             // const data = await response.json();
             // setCompletionPercentage(data.percentage);
+            const backendPercentage=response.data.workoutProgress.days.filter((d)=>d.dayNumber==dayNumber)[0].status;
 
+            console.log("Final data response", response.data);
             // Calculate locally for demo
             const percentage = (completedExercises.size / exercises.length) * 100;
             setCompletionPercentage(percentage);
@@ -225,14 +249,14 @@ function ExercisePlayer() {
         if (document.fullscreenElement) {
             document.exitFullscreen().catch(() => { });
         }
-        navigate("/startWorkout", {state: { workoutId, day: dayNumber }});
+        navigate("/startWorkout", { state: { workoutId, day: dayNumber } });
     };
 
     const handleExit = () => {
         if (document.fullscreenElement) {
             document.exitFullscreen().catch(() => { });
         }
-        navigate("/startWorkout", {state: { workoutId, day: dayNumber }});
+        navigate("/startWorkout", { state: { workoutId, day: dayNumber } });
     };
 
     const getRepsCount = () => {
@@ -246,7 +270,7 @@ function ExercisePlayer() {
     //     }
     // }, [phase, document.fullscreenElement]);
 
-    
+
     if (isLoading) {
         return (
             <div className="min-h-screen gradient-dark flex items-center justify-center">
@@ -258,79 +282,95 @@ function ExercisePlayer() {
             </div>
         );
     }
-    console.log("Fullscreen Element:", document.fullscreenElement);
-    
-    if(isLoading === false && !isFullscreen){
-        return <FullscreenRequestPage  changeFullscreenStatus={() => setIsFullscreen(true)} />
+    // console.log("Fullscreen Element:", document.fullscreenElement);
+    const progress = (currentExerciseIndex / exercises.length) * 100;
+    if (isLoading === false && !isFullscreen) {
+        return <FullscreenRequestPage changeFullscreenStatus={() => setIsFullscreen(true)} />
     }
-return (
-    <div className="min-h-screen gradient-dark text-foreground flex flex-col">
-      {/* Header */}
-      <header className="p-4 flex items-center justify-between">
-        <div className="flex-1">
-          <ExerciseProgressBar current={currentExerciseIndex} total={exercises.length} />
+    return (
+        <div className="min-h-screen gradient-dark text-foreground flex flex-col">
+            {/* Header */}
+            <header className="p-4 flex items-center gap-4">
+                <div className="flex-1">
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                        <motion.div
+                            className="h-full gradient-fire"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${progress}%` }}
+                            transition={{ duration: 0.5 }}
+                        />
+                    </div>
+                </div>
+                <span className="text-sm text-muted-foreground font-medium">
+                    {currentExerciseIndex}/{exercises.length}
+                </span>
+                <button
+                    onClick={handleExit}
+                    className="p-2 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+            </header>
+
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col">
+                {phase === "instructions" && (
+                    <InstructionModal
+                        isOpen={true}
+                        instructions={INSTRUCTIONS}
+                        currentStep={instructionStep}
+                        onNext={handleInstructionNext}
+                        onPrevious={handleInstructionPrevious}
+                        onSkipAll={handleSkipInstructions}
+                    />
+                )}
+
+                {phase === "countdown" && (
+                    <CountdownOverlay isActive={true} onComplete={handleCountdownComplete} />
+                )}
+
+                {phase === "exercise" && exercises[currentExerciseIndex] && (
+                    <ExerciseDisplay
+                        exercise={exercises[currentExerciseIndex]}
+                        currentIndex={currentExerciseIndex}
+                        totalExercises={exercises.length}
+                        timeRemaining={timeRemaining}
+                        repsCount={getRepsCount()}
+                        isPaused={isPaused}
+                        onPause={() => setIsPaused(true)}
+                        onResume={() => setIsPaused(false)}
+                        onSkip={handleSkipExercise}
+                        onComplete={handleCompleteExercise}
+                        onPrevious={handlePreviousExercise}
+                    />
+                )}
+
+                {phase === "rest" && (
+                    <RestTimer
+                        timeRemaining={restTimeRemaining}
+                        onSkip={startNextExercise}
+                        onAddTime={() => setRestTimeRemaining((prev) => prev + 30)}
+                        onReduceTime={() => setRestTimeRemaining((prev) => Math.max(0, prev - 10))}
+                        nextExerciseName={exercises[currentExerciseIndex + 1]?.name || ""}
+                    />
+                )}
+                { }
+                <CompletionModal
+                    isOpen={phase === "complete"}
+                    isSuccess={completionPercentage >= 70}
+                    completionPercentage={completionPercentage}
+                    onGoHome={handleGoHome}
+                    onRetry={handleRetry}
+                />
+            </main>
         </div>
-        <CloseButton onClick={handleExit} />
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        {phase === "instructions" && (
-          <InstructionModal
-            isOpen={true}
-            instructions={INSTRUCTIONS}
-            currentStep={instructionStep}
-            onNext={handleInstructionNext}
-            onPrevious={handleInstructionPrevious}
-            onSkipAll={handleSkipInstructions}
-          />
-        )}
-
-        {phase === "countdown" && (
-          <CountdownOverlay isActive={true} onComplete={handleCountdownComplete} />
-        )}
-
-        {phase === "exercise" && exercises[currentExerciseIndex] && (
-          <ExerciseDisplay
-            exercise={exercises[currentExerciseIndex]}
-            currentIndex={currentExerciseIndex}
-            totalExercises={exercises.length}
-            timeRemaining={timeRemaining}
-            repsCount={getRepsCount()}
-            isPaused={isPaused}
-            onPause={() => setIsPaused(true)}
-            onResume={() => setIsPaused(false)}
-            onSkip={handleSkipExercise}
-            onComplete={handleCompleteExercise}
-            onPrevious={handlePreviousExercise}
-          />
-        )}
-
-        {phase === "rest" && (
-          <RestTimer
-            timeRemaining={restTimeRemaining}
-            onSkip={startNextExercise}
-            onAddTime={() => setRestTimeRemaining((prev) => prev + 30)}
-            onReduceTime={() => setRestTimeRemaining((prev) => Math.max(0, prev - 10))}
-            nextExerciseName={exercises[currentExerciseIndex + 1]?.name || ""}
-          />
-        )}
-
-        <CompletionModal
-          isOpen={phase === "complete"}
-          isSuccess={completionPercentage >= 70}
-          completionPercentage={completionPercentage}
-          onGoHome={handleGoHome}
-        />
-      </main>
-    </div>
-  );
+    );
 };
 
 
 
 
-const FullscreenRequestPage = ({changeFullscreenStatus}) => {
+const FullscreenRequestPage = ({ changeFullscreenStatus }) => {
     return (
         <div className="min-h-screen gradient-dark flex flex-col items-center justify-center text-foreground p-4">
             <h1 className="text-3xl font-bold mb-6">Enter Fullscreen to Start Workout</h1>

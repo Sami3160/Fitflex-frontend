@@ -27,8 +27,8 @@ const ExercisePlayer = lazy(() => import('./views/workouts/ExercisePlayer.jsx'))
 // import HealthTips from './components/HealthTips'; // Make sure this path is correct
 const Blog = lazy(() => import("./views/Blog.jsx"));
 const Services = lazy(() => import("./views/Services.jsx"));
-const FullLayout= lazy(() => import("./layout/FullLayout.jsx"));
-const FullscreenLayout= lazy(() => import("./layout/FullscreenLayout.jsx"));
+const FullLayout = lazy(() => import("./layout/FullLayout.jsx"));
+const FullscreenLayout = lazy(() => import("./layout/FullscreenLayout.jsx"));
 
 import ProgressBar from "./components/ProgressBar.jsx";
 import DietRecommendation from "./components/DietRecommendation.jsx";
@@ -92,9 +92,9 @@ function App() {
                   <Route path="/about" element={<About mode={mode} textcolor={textcolor} />} />
                   <Route path="/plans" element={<Plans mode={mode} textcolor={textcolor} />} />
                   <Route
-    path="/plans/workouts/:workoutId/overview"
-    element={<IndividualWorkout mode={mode} textcolor={textcolor} />}
-  />
+                    path="/plans/workouts/:workoutId/overview"
+                    element={<IndividualWorkout mode={mode} textcolor={textcolor} />}
+                  />
                   <Route path="/blog" element={<Blog mode={mode} textcolor={textcolor} />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/progress" element={<Profile />} />
@@ -102,6 +102,10 @@ function App() {
                   <Route path="/services" element={<Services mode={mode} textcolor={textcolor} />} />
                   <Route path="/contributors" element={<Contributors mode={mode} textcolor={textcolor} />} />
                   <Route path="/startWorkout" element={<StartWorkout />} />
+                  {/* AUTH / SIMPLE */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                 </Route>
 
                 {/* FULLSCREEN */}
@@ -109,10 +113,7 @@ function App() {
                   <Route path="/exerciseplayer" element={<ExercisePlayer />} />
                 </Route>
 
-                {/* AUTH / SIMPLE */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
+
 
                 {/* FALLBACK */}
                 <Route path="*" element={<NotFound />} />
