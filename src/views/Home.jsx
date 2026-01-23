@@ -229,7 +229,7 @@ function Home({ mode, textcolor }) {
               <Box
                 sx={{
                   padding: { xs: "5px", md: "20px" },
-                  zIndex: 1,
+                  zindex: 1,
                   position: "relative",
                   backdropFilter: "blur(5px)",
                 }}
@@ -533,7 +533,7 @@ function Home({ mode, textcolor }) {
             clipPath: "polygon(0 40%, 100% 5%, 100% 68%, 0 88%)",
             rotate: "0deg",
             position: "absolute",
-            zIndex: -1,
+            zindex: -1,
           }}
         ></div>
         <Box

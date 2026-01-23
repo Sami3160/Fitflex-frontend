@@ -17,7 +17,7 @@ function Plans({ mode, textcolor }) {
     document.title = "FitFlex-Know Your Plans";
     const fetchWorkouts = async () => {
       try {
-        const response = await axios.get(`${URL}/api/workouts/workouts`)
+        const response = await axios.get(`${URL}/api/workouts`)
         setWorkouts(response.data.data)
         console.log(response.data.data)
 
@@ -28,6 +28,7 @@ function Plans({ mode, textcolor }) {
     fetchWorkouts()
 
   }, []);
+ 
 
   const [isLogged, setLogged] = useState(false);
 

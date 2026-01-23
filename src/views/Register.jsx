@@ -132,7 +132,7 @@ const Register = () => {
             color: "red",
             fontSize: "1.9rem",
             fontWeight: "bold",
-            zIndex: 10,
+            zindex: 10,
           }}
         >
           Register

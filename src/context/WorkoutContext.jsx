@@ -7,7 +7,7 @@ export const WorkoutProvider = ({ children }) => {
     const [workouts, setWorkouts] = useState({});
     const fetchWorkouts = async () => {
         try {
-            const response = await axios.get(`${URL}/api/workouts/workouts`)
+            const response = await axios.get(`${URL}/api/workouts`)
             setWorkouts(response.data.data)
             // console.log(response.data.data)
         } catch (error) {
@@ -38,8 +38,35 @@ export const WorkoutProvider = ({ children }) => {
             console.error(error)
         }
     }
+
+    const getWorkoutProgress = async (workoutId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${URL}/api/users/workouts/${workoutId}/progress`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            return response.data
+        } catch (error) {
+            console.error("Error in getWorkoutProgress from WorkoutContext:",error)
+        }
+    };
+
+    // /workouts/:workoutId/day/:day'
+
+    const getWorkoutByDay = async (workoutId, day) => {
+        try {
+            // console.log("Fetching workout for ID:", workoutId, "and day:", day)
+            const response = await axios.get(`${URL}/api/workouts/${workoutId}/day/${day+1}`)
+            // console.log("getWorkoutByDay response:", response)
+            return response.data
+        } catch (error) {
+            console.error(error)
+        }
+    }
     return (
-        <WorkoutContext.Provider value={{ getWorkoutById, workouts,getExerciseById }}>
+        <WorkoutContext.Provider value={{ getWorkoutById, workouts,getExerciseById, getWorkoutProgress, getWorkoutByDay }}>
             {children}
         </WorkoutContext.Provider>
     )

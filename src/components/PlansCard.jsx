@@ -68,7 +68,7 @@ function PlansCard({info}) {
           style={{
             position: "absolute",
             top: "40%",
-            zIndex: 1,
+            zindex: 1,
             // padding: "1px",
             backgroundColor: "rgba(0, 0, 0, 0.25)", 
             width: "103%",

@@ -96,7 +96,7 @@ const SuccessStories = () => {
   const loadShow = () => {
     const itemsElement = document.querySelectorAll('.sliderSuccess .item');
     itemsElement[active].style.transform = `none`;
-    itemsElement[active].style.zIndex = 1;
+    itemsElement[active].style.zindex = 1;
     itemsElement[active].style.filter = 'none';
     itemsElement[active].style.opacity = 1;
     // Show after
@@ -104,7 +104,7 @@ const SuccessStories = () => {
     for (let i = active + 1; i < itemsElement.length; i++) {
       stt++;
       itemsElement[i].style.transform = `translateX(${120 * stt}px) scale(${1 - 0.2 * stt}) perspective(16px) rotateY(-1deg)`;
-      itemsElement[i].style.zIndex = 0;
+      itemsElement[i].style.zindex = 0;
       itemsElement[i].style.filter = 'blur(5px)';
       itemsElement[i].style.opacity = stt > 2 ? 0 : 0.6;
     }
@@ -112,7 +112,7 @@ const SuccessStories = () => {
     for (let i = (active - 1); i >= 0; i--) {
       stt++;
       itemsElement[i].style.transform = `translateX(${-120 * stt}px) scale(${1 - 0.2 * stt}) perspective(16px) rotateY(1deg)`;
-      itemsElement[i].style.zIndex = 0;
+      itemsElement[i].style.zindex = 0;
       itemsElement[i].style.filter = 'blur(5px)';
       itemsElement[i].style.opacity = stt > 2 ? 0 : 0.6;
     }

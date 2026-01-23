@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useAsyncError, useNavigate } from 'react-router-dom';
+import { useAsyncError, useNavigate , useLocation} from 'react-router-dom';
 import { useWorkout } from '../../context/WorkoutContext';
 import axios from 'axios';
 const URL = import.meta.env.VITE_API_URL;
 const AdvanceTimer = React.lazy(() => import('../../components/AdvanceTimer'))
 
 export default function StartWorkout() {
-  const [workoutMeta, setWorkoutMeta] = useState(JSON.parse(localStorage.getItem('exerciseData')) || {});
   const [workoutData, setWorkoutData] = useState(null);
   const { user, refreshUser } = useAuth();
   const [modalVisible, showModalVisible] = useState(false);
   const { getWorkoutById, getExerciseById } = useWorkout();
   const navigate = useNavigate();
+  const location = useLocation();
   const [initialInstruction, setInitialInstruction] = useState(true);
   const [instructionIndex, setInstructionIndex] = useState(0);
   const [startCountDown, setStartCountDown] = useState(false);
@@ -27,11 +27,16 @@ export default function StartWorkout() {
   const [saving, setSaving] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [workoutCompleted, setWorkoutCompleted] = useState(false);
+  const dayNumber = location.state?.day || 0;
+  const workoutId = location.state?.workoutId;
 
+  const handleBegin=  () => {
+    navigate('/exerciseplayer', {state: {day: dayNumber, workoutId: workoutId}});
+  }
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getWorkoutById(workoutMeta.workoutId);
+        const data = await getWorkoutById(workoutId);
         setWorkoutData(data);
         // console.log('workout data set')
       } catch (error) {
@@ -40,15 +45,15 @@ export default function StartWorkout() {
     };
 
     fetchData();
-  }, [workoutMeta, getWorkoutById]);
+  }, [workoutId, getWorkoutById]);
 
   useEffect(() => {
     if (workoutData) {
-      const day = workoutData.roadMap.find(day => day.day === workoutMeta.daysCompleted + 1);
+      const day = workoutData.roadMap.find(day => day.day-1 === dayNumber);
       setCurrentDay(day);
     }
 
-  }, [workoutData, workoutMeta]);
+  }, [workoutData, dayNumber]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,17 +72,6 @@ export default function StartWorkout() {
   }, [exerciseIndex, getExerciseById, currentDay]);
 
 
-  const handleBegin = () => {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen();
-    } else if (document.documentElement.mozRequestFullScreen) { /* Firefox */
-      document.documentElement.mozRequestFullScreen();
-    } else if (document.documentElement.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
-      document.documentElement.webkitRequestFullscreen();
-    } else if (document.documentElement.msRequestFullscreen) { /* IE/Edge */
-      document.documentElement.msRequestFullscreen();
-    }
-  };
 
   const exitFullScreen = () => {
     if (document.exitFullscreen) {
@@ -171,7 +165,7 @@ export default function StartWorkout() {
 
   // Update progress when workout day is completed
   useEffect(() => {
-    console.log("current day ",currentDay)
+    // console.log("current day ",currentDay)
     const updateProgress = async () => {
       const storedToken = localStorage.getItem('token');
       if (!storedToken || !user || !currentDay) {
@@ -191,9 +185,9 @@ export default function StartWorkout() {
         const score = Math.round(completionRatio * 100);
         
         try {
-          console.log("workout id ", workoutMeta.workoutId)
+          console.log("workout id ", workoutId)
           const response = await axios.post(`${URL}/api/users/updateProgress`, {
-            workoutId: workoutMeta.workoutId,
+            workoutId: workoutId,
             currentDay:currentDayIndex,
             score: score
           }, {
@@ -202,19 +196,6 @@ export default function StartWorkout() {
             },
           });
           
-          // if (response.status === 200) {
-          //   console.log('Progress updated successfully');
-          //   const isWorkoutCompleted = response.data.completed;
-            
-          //   if (isWorkoutComplete && isWorkoutCompleted) {
-          //     console.log("modal printing")
-          //     setShowCompletionModal(true);
-          //     setWorkoutCompleted(true);
-          //   } else {
-          //     setShowCompletionModal(true);
-          //     setWorkoutCompleted(false);
-          //   }
-          // }
           console.log("response ", response)
           console.log("isWorkoutComplete ",isWorkoutComplete)
         } catch (error) {
@@ -240,52 +221,8 @@ export default function StartWorkout() {
     };
     
     updateProgress();
-  }, [exerciseIndex, actualExerciseDone, currentDayIndex, workoutMeta, user, navigate])
+  }, [exerciseIndex, actualExerciseDone, currentDayIndex, workoutId, user, navigate])
 
-
-  // Auto-enroll user when starting workout from day 1
-  useEffect(() => {
-    const enrollUser = async () => {
-      const storedToken = localStorage.getItem('token');
-      if (!storedToken || !user || !currentDay) {
-        setSaving(false);
-        return;
-      }
-
-      // Check if user needs to be enrolled (starting day 1 and not already enrolled)
-      const isDay1 = currentDay?.day === 1;
-      const isNotEnrolled = !user?.inprogressWorkouts?.some(w => w.workoutId === workoutMeta.workoutId);
-      const isNotCompleted = !user?.completedWorkouts?.some(w => w.workoutId === workoutMeta.workoutId);
-      
-      if (isDay1 && isNotEnrolled && isNotCompleted && !modalVisible && exerciseIndex === 0) {
-        setSaving(true);
-        console.log('Enrolling user in workout...');
-
-        try {
-          const response = await axios.post(`${URL}/api/users/enroll`, {
-            workoutId: workoutMeta.workoutId,
-          }, {
-            headers: {
-              Authorization: `Bearer ${storedToken}`
-            }
-          });
-          
-          if (response.status === 200) {
-            console.log('User enrolled successfully');
-          }
-        } catch (error) {
-          console.error("Error enrolling user:", error.response?.data || error.message);
-        } finally {
-          setSaving(false);
-          refreshUser();
-        }
-      } else {
-        setSaving(false);
-      }
-    };
-    
-    enrollUser();
-  }, [exerciseIndex, currentDay, workoutMeta, user, modalVisible])
   const handlePrevious = () => {
     if (exerciseIndex == 0) {
       return;
@@ -294,40 +231,7 @@ export default function StartWorkout() {
       setProgress((prog)=>(exerciseIndex / currentDay?.exercises?.length) * 100)
     }
   }
-  // const updateUserProgress=async ()=>{
-  //   const storedToken = localStorage.getItem('token');
-   
-  //   try {
-  //     const response = await axios.post(`${URL}/api/users/updateProgress`, {
-  //       workoutId: workoutMeta.workoutId,
-  //       score: score
-  //     }, {
-  //       headers: {
-  //         Authorization: `Bearer ${storedToken}`
-  //       },
-  //     });
-      
-  //     if (response.status === 200) {
-  //       console.log('Progress updated successfully');
-  //       const isWorkoutCompleted = response.data.completed;
-        
-  //       if (isWorkoutCompleted) {
-  //         setShowCompletionModal(true);
-  //         setWorkoutCompleted(true);
-  //       } else {
-  //         setShowCompletionModal(true);
-  //         setWorkoutCompleted(false);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating progress:", error.response?.data || error.message);
-  //     alert('Failed to save progress. Please try again.');
-  //   } finally {
-  //     setSaving(false);
-  //     refreshUser();
-  //   }
-  // }
-
+  
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
@@ -567,7 +471,12 @@ export default function StartWorkout() {
           </div>
         </div>
       )}
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center mb-9 mt-36 relative">
+        
+      <div className="backBtn absolute right-16 top-0 cursor-pointer flex underline" onClick={() => navigate("/plans")}>
+        <img width="28" height="28" src="https://img.icons8.com/deco-glyph/48/back.png" alt="back"/>
+        <p className="text-black  text-xl">Go Back</p>
+      </div>
         <h1 className="text-4xl font-bold mb-4">{currentDay?.title}</h1>
         <p className="text-lg mb-4">{workoutData.description}</p>
         <div className="w-full max-w-2xl">
@@ -578,6 +487,7 @@ export default function StartWorkout() {
             </div>
           ))}
         </div>
+        <div className=""></div>
         <button
           className="bg-green-500 text-white px-6 py-3 rounded mt-6 hover:bg-green-600 transition duration-300"
           onClick={() => {
@@ -594,194 +504,3 @@ export default function StartWorkout() {
 }
 
 
-
-function ExercisePlayer({ _id, duration, data, progress, next, previous, updateActualExercise }) {
-  // console.log("duration 1 "+duration);
-  const [time, setTime] = useState(duration.split('-')[0] == 'time' ? duration.split('-')[1] : -1);
-  // console.log(time);
-  const [reps, setReps] = useState(duration.split('-')[0] == 'reps' ? duration.split('-')[1] : -1);
-  // console.log(reps);
-  const type = duration.split('-')[0];
-  const [events, setEvents] = useState({
-    pause: false,
-    skip: false,
-    next: false,
-    previous: false,
-  });
-  const pause = () => {
-    console.log('pause');
-  }
-  useEffect(() => {
-    if (time > 0) {
-      if (events.pause) {
-        return;
-      }
-      const timer = setTimeout(() => {
-        setTime((prev) => prev - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (time == 0 ) {
-      setTime(30);
-      updateActualExercise((exercises)=>{
-        if(exercises?.includes(_id)){
-          return exercises;
-        }
-        return [...exercises,_id];
-      })
-
-      next();
-    }
-  }, [time, events])
-
-  // console.log("duration 2 "+duration);
-
-  return (
-    <div className="w-full h-full flex flex-col lg:flex-row gap-8 p-8 text-white">
-      {/* Left Side - Exercise Display */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-        {/* Exercise Title */}
-        <div className="text-center">
-          <h1 className="text-4xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-            {data?.name}
-          </h1>
-        </div>
-
-        {/* Exercise Image */}
-        <div className="relative w-full max-w-md h-80 rounded-2xl overflow-hidden shadow-2xl">
-          <div 
-            className="w-full h-full bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${data?.imageUrl})` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-          </div>
-        </div>
-
-        {/* Timer/Reps Display */}
-        <div className="text-center">
-          {time >= 0 ? (
-            <div className="space-y-2">
-              <div className="text-2xl font-semibold text-gray-300">Time Remaining</div>
-              <div className="text-7xl font-bold text-yellow-400 animate-pulse">
-                {Math.floor(time / 60).toString().padStart(2, '0')}:{(time % 60).toString().padStart(2, '0')}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="text-2xl font-semibold text-gray-300">Target Reps</div>
-              <div className="text-7xl font-bold text-green-400">
-                {reps}x
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Control Buttons */}
-        <div className="flex flex-wrap gap-3 justify-center max-w-lg">
-          <button 
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-            onClick={previous}
-          >
-            ← Previous
-          </button>
-          
-          {type === 'time' && (
-            <button 
-              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                events.pause 
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600' 
-                  : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600'
-              }`}
-              onClick={() => setEvents(prev => ({ ...prev, pause: !prev.pause }))}
-            >
-              {events.pause ? '▶ Resume' : '⏸ Pause'}
-            </button>
-          )}
-
-          {type === 'time' && (
-            <button 
-              className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-semibold hover:from-gray-700 hover:to-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
-              onClick={() => setTime(30)}
-            >
-              🔄 Restart
-            </button>
-          )}
-
-          <button 
-            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-            onClick={next}
-          >
-            Skip ⏭
-          </button>
-
-          <button 
-            className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-semibold hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-            onClick={() => {
-              setEvents((prev)=>({...prev,completed:true}))
-              // updateActualExercise();
-              updateActualExercise((exercises)=>{
-                if(exercises?.includes(_id)){
-                  return exercises;
-                }
-                return [...exercises,_id];
-              })
-              next();
-            }}
-          >
-            Complete ✓
-          </button>
-        </div>
-      </div>
-
-      {/* Right Side - Exercise Details */}
-      <div className="flex-1 space-y-8 max-w-lg">
-        {/* Focus Areas */}
-        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h2 className="text-2xl font-bold mb-4 text-yellow-400 flex items-center gap-2">
-            🎯 Focus Areas
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {data?.focusArea?.map((area, index) => (
-              <span 
-                key={index} 
-                className="px-3 py-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-full text-sm font-medium"
-              >
-                {area}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center gap-2">
-            📋 Instructions
-          </h2>
-          <p className="text-gray-200 leading-relaxed">{data?.instructions}</p>
-        </div>
-
-        {/* Tips */}
-        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h2 className="text-2xl font-bold mb-4 text-orange-400 flex items-center gap-2">
-            💡 Tips
-          </h2>
-          <p className="text-gray-200 leading-relaxed">{data?.tips}</p>
-        </div>
-
-        {/* Video Link */}
-        <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h2 className="text-2xl font-bold mb-4 text-red-400 flex items-center gap-2">
-            🎥 Video Guide
-          </h2>
-          <a 
-            href={data?.videoUrl} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
-          >
-            ▶ Watch Video
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}

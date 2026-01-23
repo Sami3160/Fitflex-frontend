@@ -183,7 +183,7 @@ function Navbar(props) {
             "linear-gradient(90deg, #232526 0%, #1F1C2C 35%, #414345 100%)",
         }}
         top="0"
-        zIndex="1000"
+        zindex="1000"
       >
         <Container maxWidth="xl" sx={{}}>
           <Toolbar
@@ -208,7 +208,7 @@ function Navbar(props) {
                     width: "150px",
                     position: "absolute",
                     top: "100%",
-                    zIndex: 1,
+                    zindex: 1,
                     scale: scale,
                     y: y,
                     transition:
@@ -266,7 +266,7 @@ function Navbar(props) {
 
             <motion.div className=" z-[1000] "
               sx={{
-                zIndex: 10,
+                zindex: 10,
                 flexGrow: 0,
                 display: { xs: "flex", md: "none" },
                 alignItems: "center",
@@ -349,7 +349,7 @@ function Navbar(props) {
                   width: "280px",
                   position: "absolute",
                   top: "100%",
-                  zIndex: 1,
+                  zindex: 1,
                   scale: scale - 0.1,
                   y: y2,
                   x: x3,
@@ -385,7 +385,7 @@ function Navbar(props) {
                   fontSize: window.innerWidth < 600 ? "1rem" : "1.6rem", // Responsive font size for mobile
                   fontWeight: "bold",
                   marginRight: "30px",
-                  zIndex: 10,
+                  zindex: 10,
                   transition:
                     "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                 }}
